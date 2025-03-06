@@ -20,6 +20,14 @@ const UbicacionDto = z.object({
   ),
 });
 
+const clientesDto= z.object({
+  cliente_id: z
+    .string()
+    .refine((id) => /^[0-9a-fA-F]{24}$/.test(id), {
+      message: "trabajadorId debe ser un ObjectId válido",
+    }),
+})
+
 // DTO para los trabajadores
 const TrabajadorDto = z.object({
   trabajadorId: z
@@ -34,41 +42,44 @@ const PermisoDto = z.object({
   nombre_permiso: z.string(),
 });
 
+// DTO para cada acción dentro de un estado
+const AccionDto = z.object({
+  nombre: z.string(),
+  fecha: z.preprocess(
+    (arg) => {
+      if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+      return arg;
+    },
+    z.date()
+  ),
+});
+
+// DTO para cada estado en la línea de tiempo  
+const EstadoDto = z.object({
+  // Si los estados son fijos, se puede usar un enum para validarlos:
+  nombre_estado: z.enum([ "puerto", "hotel", "aeropuerto"]),
+  // Un estado puede tener múltiples acciones
+  acciones: z.array(AccionDto).default([]), 
+});
+
+// DTO para cada servicio
+const ServicioDto = z.object({
+  nombre_servicio: z.string(),
+  // Cada servicio contiene una lista de estados (con sus respectivas acciones)
+  estados: z.array(EstadoDto).default([]),
+});
+
 // DTO para la Embarcación
 const EmbarcacionDto = z.object({
   titulo_embarcacion: z.string().nonempty("El título de la embarcación es obligatorio"),
-  destino_embarcacion:z.string().nonempty('el destino no puede estar vacio'),
-  cliente_id: z
-    .string()
-    .refine((id) => /^[0-9a-fA-F]{24}$/.test(id), {
-      message: "cliente_id debe ser un ObjectId válido",
-    }),
+  destino_embarcacion: z.string().nonempty("El destino no puede estar vacío"),
+  clientes: z.array(clientesDto).default([]),
   is_activated: z.boolean().default(true),
   trabajadores: z.array(TrabajadorDto).default([]),
   permisos_embarcacion: z.array(PermisoDto).default([]),
-  
+  // Aquí se incluye la nueva estructura para servicios
+  servicios: z.array(ServicioDto).default([]),
 });
 
-
-
-const updateEmbarcacionAdminDto= z.object({
-  titulo_embarcacion: z.string().nonempty("El título de la embarcación es obligatorio"),
-  cliente_id: z
-    .string()
-    .refine((id) => /^[0-9a-fA-F]{24}$/.test(id), {
-      message: "cliente_id debe ser un ObjectId válido",
-    }),
-  is_activated: z.boolean().default(true),
-  trabajadores: z.array(TrabajadorDto).default([]),
-  permisos_embarcacion: z.array(PermisoDto).default([]),
-  ubicacion_embarcacion: z.array(UbicacionDto).default([]),
-
-})
-
-const updateEmbarcacionTrabajadorDto= z.object({
-  is_activated: z.boolean().default(true),
-  permisos_embarcacion: z.array(PermisoDto).default([]),
-  ubicacion_embarcacion: z.array(UbicacionDto).default([]),
-
-})
-export { EmbarcacionDto,updateEmbarcacionAdminDto,updateEmbarcacionTrabajadorDto};
+// Exporta los DTOs necesarios
+export { EmbarcacionDto};

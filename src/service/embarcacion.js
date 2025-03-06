@@ -2,21 +2,26 @@ import { Embarcacion } from "../model/embarcacion.js";
 import { Client } from "../model/cliente.js";
 import { 
   EmbarcacionDto, 
-  updateEmbarcacionAdminDto, 
-  updateEmbarcacionTrabajadorDto 
+   
 } from "../dtos/embarcaciones/embarcacion.js";
 
 export class EmbarcacionService {
   async crearEmbarcacion(data) {
     try {
+      // Validamos y parseamos la data usando el DTO
+      const validData = EmbarcacionDto.parse(data);
+
+      console.log(validData)
       const embarcacion = await Embarcacion.create({
-        titulo_embarcacion: data.titulo_embarcacion,
-        destino_embarcacion:data.destino_embarcacion,
-        cliente_id: data.cliente_id,
-        is_activated: data.is_activated,
-        trabajadores: data.trabajadores,
-        permisos_embarcacion: data.permisos_embarcacion
-        // Nota: Si deseas agregar ubicaciones en la creación, inclúyelas aquí.
+        titulo_embarcacion: validData.titulo_embarcacion,
+        destino_embarcacion: validData.destino_embarcacion,
+        clientes: validData.clientes,
+        is_activated: validData.is_activated,
+        trabajadores: validData.trabajadores,
+        permisos_embarcacion: validData.permisos_embarcacion,
+        // Se incluye la nueva propiedad para los servicios
+        servicios: validData.servicios
+        // Nota: Si tienes otros campos como ubicaciones, agrégalos aquí.
       });
 
       return { message: 'Embarcacion creada exitosamente' };
@@ -26,32 +31,88 @@ export class EmbarcacionService {
     }
   }
 
+  async  actualizarServicioAccion(_id,  nombre_servicio, nombre_estado,acciones) {
+     
+    // Buscar la embarcación por id
+    const embarcacion = await Embarcacion.findById(_id);
+    if (!embarcacion) {
+      return { message: 'Embarcación no encontrada' };
+    }
+  
+    
+    // Buscar el servicio dentro del documento
+    const servicio = embarcacion.servicios.find(
+      s => s.nombre_servicio.toLowerCase().trim() === nombre_servicio.toLowerCase().trim()
+    );
+    if (!servicio) {
+      return { message: 'Servicio no encontrado' };
+    }
+    
+    // Buscar el estado dentro del servicio
+    const estado = servicio.estados.find(e => e.nombre_estado === nombre_estado);
+    if (!estado) {
+      return { message: 'Estado no encontrado' };
+    }
+    
+    // Agregar las nuevas acciones al array de acciones del estado
+    estado.acciones.push(...acciones);
+    
+    // Guardar la actualización en la base de datos
+    await embarcacion.save();
+    
+    return { message: 'Acciones agregadas al estado' };
+  }
  
-  async actualizarEmbarcacion(_id, data,userRole) {
+  async actualizarEmbarcacion(_id, data) {
     try {
-      const embarcacion = await Embarcacion.findById(_id);
-      if (!embarcacion) {
-        return { message: 'Embarcacion no encontrada' };
+      // Validar la data usando DTO
+      const dataParsed = EmbarcacionDto.parse(data);
+  
+      // Buscar la embarcación existente para fusionar datos
+      const embarcacionExistente = await Embarcacion.findById(_id);
+      if (!embarcacionExistente) {
+        return { message: "Embarcación no encontrada" };
       }
-
-      let parsedData;
-      if (userRole === 'ADMIN') {
-        parsedData = updateEmbarcacionAdminDto.parse(data);
-      } else if (userRole === 'TRABAJADOR') {
-        parsedData = updateEmbarcacionTrabajadorDto.parse(data);
-      } else {
-        return res.status(403).json({ message: 'No tienes permiso para actualizar' });
-      }
-      const updated = await Embarcacion.findByIdAndUpdate(_id, parsedData, { new: true });
-
-      return { message: "Embarcación actualizada por trabajador", data: updated };
+  
+      // Fusionar servicios existentes con los nuevos sin eliminar los previos
+      const serviciosActualizados = [...embarcacionExistente.servicios];
+  
+      dataParsed.servicios.forEach((nuevoServicio) => {
+        const index = serviciosActualizados.findIndex(
+          (s) => s.nombre_servicio === nuevoServicio.nombre_servicio
+        );
+  
+        if (index === -1) {
+          // 🔹 Si el servicio no existe, lo agregamos
+          serviciosActualizados.push(nuevoServicio);
+        } else {
+          // 🔹 Si ya existe, mantenemos el servicio sin modificar
+          serviciosActualizados[index] = {
+            ...serviciosActualizados[index],
+            estados: [...serviciosActualizados[index].estados, ...nuevoServicio.estados],
+          };
+        }
+      });
+  
+      // Actualizar la embarcación
+      const updatedEmbarcacion = await Embarcacion.findByIdAndUpdate(
+        _id,
+        {
+          ...dataParsed,
+          servicios: serviciosActualizados, // Mantener servicios anteriores + nuevos
+        },
+        { new: true, runValidators: true } // Aplicar validaciones
+      );
+  
+      return { message: "Embarcación actualizada con éxito", data: updatedEmbarcacion };
     } catch (error) {
-      console.error("Error en actualizarEmbarcacionTrabajador:", error);
+      console.error("Error en actualizarEmbarcacion:", error);
       throw error;
     }
   }
+   
 
-  async getEmbarcacionById(_id, userRole) {
+  async getEmbarcacionById(_id) {
     // 1. Busca la embarcación en la BD
     const embarcacionDoc = await Embarcacion.findById(_id);
     if (!embarcacionDoc) {
@@ -61,31 +122,14 @@ export class EmbarcacionService {
     // Conviertes a objeto para manipularlo más fácil.
     const embarcacion = embarcacionDoc.toObject();
   
-    // 2. Filtra campos según el rol
-    if (userRole === 'ADMINISTRADOR') {
-      // El ADMIN puede ver todo excepto TÍTULO y UBICACIÓN:
-      delete embarcacion.titulo_embarcacion;
-      delete embarcacion.ubicacion_embarcacion;
-    } else if (userRole === 'TRABAJADOR') {
-      // El TRABAJADOR solo ve DESTINO, UBICACIÓN, PERMISOS y si está ACTIVO:
-      const filtered = {
-        destino_embarcacion: embarcacion.destino_embarcacion,
-        ubicacion_embarcacion: embarcacion.ubicacion_embarcacion,
-        permisos_embarcacion: embarcacion.permisos_embarcacion,
-        is_activated: embarcacion.is_activated
-      };
+    
       // Retornamos solo esos campos
       return {
         message: 'Embarcacion encontrada',
-        data: filtered
+        data: embarcacion
       };
-    }
+    
   
-    // 3. Retorna el resultado final
-    return {
-      message: 'Embarcacion encontrada',
-      data: embarcacion
-    };
   }
   
 
@@ -179,7 +223,11 @@ export class EmbarcacionService {
 
       const embarcaciones = await Embarcacion.find({})
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .populate({
+          path:'clientes.cliente_id',
+            select:'nombre_cliente -_id'
+        });
 
       const total = await Embarcacion.countDocuments({});
 

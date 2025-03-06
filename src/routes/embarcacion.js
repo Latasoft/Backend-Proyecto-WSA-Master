@@ -5,13 +5,15 @@ import {
     getEmbarcacionesByClienteId,
     getEmbarcacionesByTrabajadorId,
     getAllEmbarcaciones,
-    updateEmbarcacion
+    updateEmbarcacion,
+    updateServiceAccion
 } from '../controller/embarcacion.js'; // Importa los controladores
 import  {verifyRoles} from'../middleware/verifyRoles.js'
 const router = express.Router();
 
 router.post('/',crearEmbarcacion)
 router.put('/:_id',verifyRoles('ADMINISTRADOR','TRABAJADOR'),updateEmbarcacion)
+router.put('/agregar-accion/:_id',verifyRoles('ADMINISTRADOR','TRABAJADOR'),updateServiceAccion)
 router.get('/',getAllEmbarcaciones)
 router.get('/:_id',verifyRoles('ADMINISTRADOR','TRABAJADOR'),getEmbarcacionById)
 router.get('/trabajador/:_id',getEmbarcacionesByTrabajadorId)
