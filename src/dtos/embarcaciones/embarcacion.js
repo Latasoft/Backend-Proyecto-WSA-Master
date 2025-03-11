@@ -52,6 +52,7 @@ const AccionDto = z.object({
     },
     z.date()
   ),
+  comentario:z.string().optional(),
 });
 
 // DTO para cada estado en la línea de tiempo  

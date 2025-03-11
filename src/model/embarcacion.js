@@ -4,7 +4,9 @@ import mongoose from "mongoose";
 const accionSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true },
-    fecha: { type: Date, required: true }
+    fecha: { type: Date, required: true },
+    comentario:{type:String,required:false}
+
   },
   { _id: false }
 );
