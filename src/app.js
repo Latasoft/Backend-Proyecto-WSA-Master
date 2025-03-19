@@ -5,6 +5,8 @@ import userRoutes from './routes/user.js'
 import authRoutes from './routes/auth.js'
 import clienteRoutes from './routes/cliente.js'
 import embarcacionRoutes from './routes/embarcacion.js'
+import grupoRoutes from './routes/grupos.js'
+import mensajeRoutes from './routes/mensaje.js'
 const app = express();
 
 app.use(corsMiddleware)
@@ -16,5 +18,6 @@ app.use('/api/users',userRoutes)
 app.use('/api/auth',authRoutes)
 app.use('/api/clientes',clienteRoutes)
 app.use('/api/embarcaciones',embarcacionRoutes)
-
+app.use('/api/grupos',grupoRoutes)
+app.use('/api/mensajes',mensajeRoutes)
 export default app; 

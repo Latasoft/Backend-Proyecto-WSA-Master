@@ -55,7 +55,7 @@ export class EmbarcacionService {
     }
     
     // Agregar las nuevas acciones al array de acciones del estado
-    estado.acciones.push(...acciones);
+    estado.acciones=acciones;
     
     // Guardar la actualización en la base de datos
     await embarcacion.save();
