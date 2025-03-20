@@ -22,18 +22,32 @@ export class MensajeService {
     }
   }
 
-  async listMessagesByGroup(groupId) {
+  async listMessagesByGroup(groupId, page = 1, limit = 20) {
     try {
-      // Buscar mensajes pertenecientes a un grupo, ordenados por timestamp
-      // y utilizando populate para traer el username del remitente
+      // Calcula el número de documentos a saltar
+      const skip = (page - 1) * limit;
+  
+      // Busca y ordena los mensajes, aplicando skip y limit
       const messages = await Mensaje.find({ group: groupId })
         .populate('sender', 'username')
-        .sort({ timestamp: 1 });
-
-      return { messages };
+        .sort({ timestamp: 1 }) // Orden ascendente: primero los mensajes enviados primero
+        .skip(skip)
+        .limit(limit);
+  
+      // También puedes obtener el total de mensajes para calcular el número total de páginas
+      const totalMessages = await Mensaje.countDocuments({ group: groupId });
+      const totalPages = Math.ceil(totalMessages / limit);
+  
+      return { 
+        messages,
+        totalMessages,
+        totalPages,
+        currentPage: page
+      };
     } catch (error) {
       console.error("Error al listar mensajes:", error);
       throw new Error(error.message);
     }
   }
+  
 }

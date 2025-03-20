@@ -5,7 +5,8 @@ const accionSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true },
     fecha: { type: Date, required: true },
-    comentario:{type:String,required:false}
+    comentario:{type:String,required:false},
+    incidente:{type:Boolean,required:false}
 
   },
   { _id: false }
