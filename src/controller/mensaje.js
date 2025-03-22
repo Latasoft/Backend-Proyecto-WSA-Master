@@ -30,12 +30,13 @@ export async function listMessagesController(req, res) {
   try {
     // Se espera que el ID del grupo venga en la URL (por ejemplo, /api/messages/:groupId)
     const groupId = req.params.groupId;
-    const { page = 1, limit = 20 } = req.query;
     const { _id: userId, role } = req.user;
+    const cursor = req.query.cursor;
+    const limit = parseInt(req.query.limit || '20');
     
     const result = await mensajeService.listMessagesByGroup(
       groupId,
-      parseInt(page),
+      cursor,
       parseInt(limit),
       userId,
       role

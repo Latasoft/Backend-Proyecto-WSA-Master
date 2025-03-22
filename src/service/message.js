@@ -15,54 +15,59 @@ export class MensajeService {
         sender: parsedData.sender,
         content: parsedData.content
       });
+      // Popular el sender antes de devolver
+const mensajePopulado = await newMessage.populate('sender', 'username');
 
-      return { message: "Mensaje creado con éxito", mensaje: newMessage  };
+      return { message: "Mensaje creado con éxito", mensaje: mensajePopulado  };
     } catch (error) {
       console.error("Error al crear mensaje:", error);
       throw new Error(error.message);
     }
   }
 
-  async listMessagesByGroup(groupId, page = 1, limit = 20, userId, role) {
+  async listMessagesByGroup(groupId, cursor, limit = 20, userId, role) {
     try {
-      
       const grupo = await Grupo.findById(groupId);
       if (!grupo) {
         throw new MessageError('Grupo no encontrado', 404);
       }
-
-      // Validar si el usuario tiene permiso para acceder
+  
       const esMiembro = grupo.members.includes(userId);
       const esAdmin = role === "ADMINISTRADOR";
-
+  
       if (!esMiembro && !esAdmin) {
         throw new MessageError('No tienes permiso para ver los mensajes de este grupo', 403);
       }
-
-      // Calcula el número de documentos a saltar
-      const skip = (page - 1) * limit;
   
-      // Busca y ordena los mensajes, aplicando skip y limit
-      const messages = await Mensaje.find({ group: groupId })
+      const query = { group: groupId };
+  
+      // Si hay cursor, buscar mensajes anteriores a ese ID
+      if (cursor) {
+        const mensajeCursor = await Mensaje.findById(cursor);
+        if (mensajeCursor) {
+          query.$or = [
+            { sentAt: { $lt: mensajeCursor.sentAt } },
+            { sentAt: mensajeCursor.sentAt, _id: { $lt: mensajeCursor._id } }
+          ];
+        }
+      }
+  
+      const messages = await Mensaje.find(query)
         .populate('sender', 'username')
-        .sort({ timestamp: 1 }) // Orden ascendente: primero los mensajes enviados primero
-        .skip(skip)
+        .sort({ sentAt: -1, _id: -1 }) // trae los más recientes primero
         .limit(limit);
   
-      // También puedes obtener el total de mensajes para calcular el número total de páginas
-      const totalMessages = await Mensaje.countDocuments({ group: groupId });
-      const totalPages = Math.ceil(totalMessages / limit);
-  
-      return { 
-        messages,
-        totalMessages,
-        totalPages,
-        currentPage: page
+      return {
+        messages: messages.reverse(), // devuelve en orden ascendente
+        hasMore: messages.length === limit,
+        cursor: messages.length ? messages[0]._id : null
       };
+  
     } catch (error) {
       console.error("Error al listar mensajes:", error);
       throw new Error(error.message);
     }
   }
+  
   
 }

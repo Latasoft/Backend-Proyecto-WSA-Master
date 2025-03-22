@@ -9,7 +9,7 @@ const router= express.Router();
 
 router.post('/',createGrupo)
 router.get('/', listGroupsForAdmin); // Nueva ruta para listar miembros
-router.get('/:groupId',getGrupoById)
+router.get('/:_id',getGrupoById)
 router.get('/user/:_id',getGruposByUserId)
 router.put('/:_id/add', addMemberController);
 router.put('/:_id/remove', removeMemberController);

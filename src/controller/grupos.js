@@ -84,7 +84,7 @@ export const addMemberController = async (req, res) => {
   };
   export const getGrupoById = async (req, res) => {
     try {
-      const groupId = req.params.groupId;
+      const groupId = req.params._id;
       console.log(groupId);
   
       const response = await grupoService.getGrupoById(groupId);
