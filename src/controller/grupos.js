@@ -51,10 +51,11 @@ export const addMemberController = async (req, res) => {
     }
   };
 
-  export const listEmployeesInGrouop = async(req,res)=>{
+  export const listGroupsForAdmin = async(req,res)=>{
     try {
-        const groupId = req.params._id; // Se espera que el ID del grupo venga en la URL
-        const result = await grupoService.listEmployeeInGrouop(groupId);
+      const page = parseInt(req.query.page) || 1;
+
+        const result = await grupoService.listGrupsForAdmin(page);
         if (result.message) {
           return res.status(404).json(result);
         }
@@ -65,3 +66,33 @@ export const addMemberController = async (req, res) => {
       }
 
   }
+  export const getGruposByUserId = async (req, res) => {
+    const userId = req.params._id;
+    const page = parseInt(req.query.page) || 1;
+  
+    if (!userId) {
+      return res.status(400).json({ message: "Falta el ID del usuario" });
+    }
+  
+    try {
+      const result = await grupoService.listGruposByUserIdPaginated(userId, page);
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error("Error en getGruposByUserId:", error);
+      return res.status(500).json({ message: error.message });
+    }
+  };
+  export const getGrupoById = async (req, res) => {
+    try {
+      const groupId = req.params.groupId;
+      console.log(groupId);
+  
+      const response = await grupoService.getGrupoById(groupId);
+      return res.status(200).json(response);
+  
+    } catch (error) {
+      console.error("Error en getGrupoById:", error.message);
+      return res.status(500).json({ message: error.message });
+    }
+  };
+  

@@ -11,6 +11,7 @@ export class GrupoService {
       const newGrupo = await Grupo.create({
         name: grupoParsedData.name,
         members: grupoParsedData.members || [],
+        status:grupoParsedData.status,
       });
 
       return { message: 'Grupo creado con éxito' ,grupo: newGrupo};
@@ -65,20 +66,95 @@ export class GrupoService {
       throw new Error(error.message);
     }
   }
-  async listEmployeeInGrouop(groupId){
-    try{
-         // Se utiliza populate para traer la información de los usuarios
-      const grupo = await Grupo.findById(groupId).populate("members", "_id username");
-      if (!grupo) {
-        return { message: "Grupo no encontrado" };
-      }
-      // Retorna solo el array de miembros con _id y name
-      return { members: grupo.members };
-
-    }catch(error){
-        console.error("Error al listar usuarios en el grupo:", error);
-      throw new Error(error.message);
-
+  async listGrupsForAdmin(page = 1, limit = 5) {
+    try {
+      const skip = (page - 1) * limit;
+  
+      // Traemos todos los grupos paginados
+      const grupos = await Grupo.find()
+        .skip(skip)
+        .limit(limit)
+        .lean(); // lean() mejora rendimiento
+  
+      // Obtenemos la cantidad total
+      const total = await Grupo.countDocuments();
+  
+      // Para cada grupo, populamos parcialmente los primeros 3 miembros
+      const gruposConMiembros = await Promise.all(
+        grupos.map(async (grupo) => {
+          const grupoConMiembros = await Grupo.findById(grupo._id)
+            .populate({
+              path: "members",
+              select: "_id username",
+              options: { limit: 3 } // Solo los primeros 3
+            })
+            .lean();
+  
+          return {
+            _id: grupo._id,
+            name: grupo.name,
+            status: grupo.status,
+            members: grupoConMiembros.members
+          };
+        })
+      );
+  
+      return {
+        data: gruposConMiembros,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total
+      };
+    } catch (error) {
+      console.error("Error al listar grupos para admin:", error);
+      throw new Error("Error interno del servidor");
     }
   }
+  async listGruposByUserIdPaginated(userId, page = 1, limit = 5) {
+    try {
+      const skip = (page - 1) * limit;
+  
+      const query = {
+        members: userId,
+        status: true // ✅ solo grupos activos
+      };
+  
+      const grupos = await Grupo.find(query)
+        .select('_id name status')
+        .skip(skip)
+        .limit(limit)
+        .lean();
+  
+      const total = await Grupo.countDocuments(query);
+  
+      return {
+        data: grupos,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total
+      };
+    } catch (error) {
+      console.error("Error al listar grupos activos por usuario:", error);
+      throw new Error("Error interno del servidor");
+    }
+  }
+
+  async getGrupoById(groupId) {
+    try {
+      const group = await Grupo.findById(groupId); // <-- te faltaba el `await`
+      if (!group) {
+        throw new Error("Grupo no encontrado");
+      }
+  
+      return {
+        message: "Grupo encontrado",
+        data: group,
+      };
+    } catch (error) {
+      throw new Error(`Error al obtener el grupo por ID: ${error.message}`);
+    }
+  }
+  
+  
+  
 }

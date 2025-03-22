@@ -7,6 +7,7 @@ export const createGroupSchema= z.object({
 
     }),
     members: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, 'ID de usuario inválido')).optional(),
+    status:z.boolean(true).optional(),
 
 })
 

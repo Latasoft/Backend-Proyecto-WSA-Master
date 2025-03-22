@@ -1,7 +1,8 @@
 // service/mensajeService.js
 import {Mensaje} from '../model/mensaje.js';
+import {Grupo} from '../model/grupo.js';
 import { createMessageSchema } from '../dtos/mensajes/mensaje.js';
-
+import { MessageError } from '../utils/messageErrorUtil.js';
 export class MensajeService {
   async crearMensaje(messageData) {
     try {
@@ -22,8 +23,22 @@ export class MensajeService {
     }
   }
 
-  async listMessagesByGroup(groupId, page = 1, limit = 20) {
+  async listMessagesByGroup(groupId, page = 1, limit = 20, userId, role) {
     try {
+      
+      const grupo = await Grupo.findById(groupId);
+      if (!grupo) {
+        throw new MessageError('Grupo no encontrado', 404);
+      }
+
+      // Validar si el usuario tiene permiso para acceder
+      const esMiembro = grupo.members.includes(userId);
+      const esAdmin = role === "ADMINISTRADOR";
+
+      if (!esMiembro && !esAdmin) {
+        throw new MessageError('No tienes permiso para ver los mensajes de este grupo', 403);
+      }
+
       // Calcula el número de documentos a saltar
       const skip = (page - 1) * limit;
   
