@@ -16,6 +16,10 @@ const userSchema= new mongoose.Schema({
         type:String,
         enum:rolEnum,
         required:true
+    },
+    fcmTokens: {
+        type: [String],
+        default: []
     }
 })
 

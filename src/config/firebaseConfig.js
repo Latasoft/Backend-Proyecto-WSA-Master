@@ -25,5 +25,5 @@ admin.initializeApp({
   // Acceso al bucket de Storage
   const bucket = admin.storage().bucket();
  
-  export { bucket };
+  export { bucket, admin };
   

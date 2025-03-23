@@ -153,7 +153,24 @@ export class UserService{
         throw error;
       }
     }
-    
+    async registroFmcToken(userId, fcmToken ){
+      const user = await User.findById(userId)
+
+      if(!user){
+        throw new Error("Error Usuario no existe")
+      }
+
+          // Verificar si el token ya existe
+      if (!user.fcmTokens.includes(fcmToken)) {
+        user.fcmTokens.push(fcmToken);
+        await user.save();
+      }
+      return {
+        message: "Token FCM actualizado correctamente",
+      };
+
+
+    }
     
     
 }

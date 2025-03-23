@@ -67,3 +67,21 @@ export async function getAllEmployes(req,res){
 
     }
 }
+
+export async function saveFcmTokenController(req, res) {
+    try {
+      const userId = req.user._id; // asegurado por middleware de autenticación
+      const { fcmToken } = req.body;
+  
+      if (!fcmToken) {
+        return res.status(400).json({ message: 'FCM Token es requerido' });
+      }
+  
+      const result = await userService.registroFmcToken(userId, fcmToken);
+      return res.status(200).json(result);
+  
+    } catch (error) {
+      console.error('Error guardando FCM Token:', error.message);
+      return res.status(500).json({ message: 'Error al guardar el token FCM' });
+    }
+  }
