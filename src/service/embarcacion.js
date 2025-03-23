@@ -145,7 +145,7 @@ export class EmbarcacionService {
         .skip(skip)
         .limit(limit)
         .populate({
-          path:'cliente_id',
+          path:'clientes.cliente_id',
           select:'nombre_cliente -_id'
         });
         
