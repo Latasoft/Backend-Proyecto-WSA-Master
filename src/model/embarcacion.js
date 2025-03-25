@@ -19,10 +19,44 @@ const estadoSchema = new mongoose.Schema(
       type: String,
       required: true,
       // Si los estados son fijos, puedes limitar los valores permitidos:
-      enum: ["Provisions and Bonds","Technical Assitance and Products","WorkShop Coordination","Diving Service Coordination","Marine Surveyor Arrangement","Last Mile","Sample shipping","Cargo Shipping","Landing and Return By Courier","Airfreight Coordination","Seafreight Coordination","Courier on Board Clearance","Landing and Return Spare Parts","Port Technical Services","Port Technical Services","Custom Process","Representation","Local Subpplier And Provisions to Expeditions","Hub Agent","Part Asistence","Account Supervision","Tax Recovery (Chile)",
-    "Full Port Agent","Protective Agency","Bunkering Call","Logistic Call","Panama Channel Transit","Magellan Strait Pilotage","Crew Change","Medical Assistance","Visa Authorization on Arraival","Hotel Service",
-    "Transportation","Cash to Master","Ok to Board Issuance"
-      ]  
+      enum: [
+        "Provisions and Bonds",
+        "Technical Assitance and Products", 
+        "WorkShop Coordination",
+        "Diving Service Coordination",
+        "Marine Surveyor Arrangement",
+        "Last Mile",
+        "Sample shipping",
+        "Cargo Shipping",
+        "Landing and Return By Courier",
+        "Airfreight Coordination",
+        "Seafreight Coordination",
+        "Courier on Board Clearance",
+        "Landing and Return Spare Parts",
+        "Port Technical Services",
+        "Custom Process",
+        "Representation",
+        "Local Subpplier And Provisions to Expeditions",
+        "Hub Agent",
+        "Part Asistence",
+        "Account Supervision",
+        "Tax Recovery (Chile)",
+        "Full Port Agent",
+        "Protective Agency",
+        "Bunkering Call",
+        "Logistic Call",
+        "Panama Channel Transit",
+        "Magellan Strait Pilotage",
+        "Crew Change",
+        "Medical Assistance",
+        "Visa Authorization on Arraival",
+        "Hotel Service",
+        "Transportation",
+        "Cash to Master",
+        "Ok to Board Issuance",
+        "Working Permit" // ← Agregado solo si es válido
+      ]
+        
     },
     // Cada estado puede tener varias acciones (eventos) en su línea de tiempo
     acciones: {
@@ -50,6 +84,7 @@ const servicioSchema = new mongoose.Schema({
 const embarcacionSchema = new mongoose.Schema({
   titulo_embarcacion: { type: String, required: true },
   destino_embarcacion: { type: String, required: true },
+  fecha_creacion: { type: Date, default: Date.now }, 
   clientes: [
     {
       cliente_id: {
