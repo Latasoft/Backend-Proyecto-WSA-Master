@@ -1,24 +1,24 @@
 import { Embarcacion } from "../model/embarcacion.js";
 import puppeteer from 'puppeteer';
-
+import mongoose from "mongoose"; // Asegúrate de importar esto
 export class ReporteService {
     async generarPDFServiciosPorCliente(clienteId, fecha_inicio, fecha_fin) {
-        const desde = new Date(fecha_inicio);
-        const hasta = new Date(fecha_fin);
+      console.log(clienteId, fecha_inicio, fecha_fin);
+      const desde = new Date(fecha_inicio);
+      desde.setUTCHours(0, 0, 0, 0); // 00:00 UTC
+      
+      const hasta = new Date(fecha_fin);
+      hasta.setUTCHours(23, 59, 59, 999); // 23:59 UTC
 
-
-        console.log('📅 Rango de fechas:', desde, hasta);
-        console.log('👤 Cliente ID:', clienteId);
-
+      const clienteObjectId = new mongoose.Types.ObjectId(clienteId);
         const embarcaciones = await Embarcacion.find({
-            'clientes.cliente_id': clienteId,
+            'clientes.cliente_id': clienteObjectId,
             fecha_creacion: { $gte: desde, $lte: hasta }
         }).populate('clientes.cliente_id', 'nombre_cliente apellido_cliente');
 
-        console.log('🚢 Embarcaciones encontradas:', embarcaciones.length);
 
         if (embarcaciones.length === 0) {
-            console.warn('⚠️ No se encontraron embarcaciones con esos criterios');
+          throw new Error('No se encontraron embarcaciones para ese cliente y rango de fechas.');
         } else {
             embarcaciones.forEach((e, i) => {
                 console.log(`📄 Embarcación ${i + 1}:`, {
@@ -59,7 +59,10 @@ export class ReporteService {
             </thead>
             <tbody>
               ${embarcaciones.map(e => {
-            const clienteNombre = `${e.clientes?.[0]?.cliente_id?.nombre_cliente ?? 'Desconocido'} ${e.clientes?.[0]?.cliente_id?.apellido_cliente ?? ''}`.trim();
+                const clienteData = e.clientes.find(c => c.cliente_id?._id?.toString() === clienteId);
+                const clienteNombre = clienteData
+                  ? `${clienteData.cliente_id.nombre_cliente} ${clienteData.cliente_id.apellido_cliente}`.trim()
+                  : 'Desconocido';
 
             const serviciosUnicos = e.servicios.map(s => s.nombre_servicio);
             const totalServicios = serviciosUnicos.length;

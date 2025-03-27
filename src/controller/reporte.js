@@ -30,7 +30,11 @@ export const generarReportePDF = async (req, res) => {
       
       res.end(pdfBuffer);
   } catch (error) {
-    console.error('Error al generar el PDF:', error);
+    console.error('❌ Error al generar el PDF:', error.message);
+
+    if (error.message.includes('No se encontraron embarcaciones')) {
+      return res.status(404).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Error interno al generar el PDF' });
   }
 };
