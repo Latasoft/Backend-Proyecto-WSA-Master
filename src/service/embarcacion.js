@@ -184,18 +184,16 @@ export class EmbarcacionService {
 
       const skip = (page - 1) * limit;
 
-      const embarcaciones = await Embarcacion.find({ cliente_id: cliente._id })
+      const embarcaciones = await Embarcacion.find({ 'clientes.cliente_id': cliente._id })
         .skip(skip)
         .limit(limit)
-        .populate(
-          {
-            path:'cliente_id',
-            select:'nombre_cliente -_id'
-          }
-        );
+        .populate({
+          path: 'clientes.cliente_id',
+          select: 'nombre_cliente apellido_cliente'
+        });
         
 
-      const total = await Embarcacion.countDocuments({ cliente_id: cliente._id });
+      const total = await Embarcacion.countDocuments({ 'clientes.cliente_id': cliente._id });
 
       if (embarcaciones.length === 0) {
         return { message: 'Embarcacion no encontrada' };
@@ -250,4 +248,45 @@ export class EmbarcacionService {
       throw error;
     }
   }
+
+
+  async getEmbarcacionByIdAndCliente(embarcacionId, clienteId) {
+    const embarcacionDoc = await Embarcacion.findOne({
+      _id: embarcacionId,
+      "clientes.cliente_id": clienteId
+    }).populate("clientes.cliente_id", "nombre_cliente apellido_cliente rut_cliente foto_cliente");;
+  
+    if (!embarcacionDoc) {
+      return { message: 'Embarcación no encontrada para este cliente' };
+    }
+  
+    const embarcacion = embarcacionDoc.toObject();
+  
+    // Buscar el cliente solicitado dentro del array
+    const clienteData = embarcacion.clientes.find(
+      (c) => c.cliente_id && c.cliente_id._id.toString() === clienteId
+    )?.cliente_id;
+
+    return {
+      message: 'Embarcación encontrada',
+      data: {
+        _id: embarcacion._id,
+        titulo_embarcacion: embarcacion.titulo_embarcacion,
+        destino_embarcacion: embarcacion.destino_embarcacion,
+        fecha_creacion: embarcacion.fecha_creacion,
+        servicios: embarcacion.servicios,
+        permisos_embarcacion: embarcacion.permisos_embarcacion,
+        cliente: clienteData
+        ? {
+            _id: clienteData._id,
+            nombre: clienteData.nombre_cliente,
+            apellido: clienteData.apellido_cliente,
+            rut: clienteData.rut_cliente,
+            foto: clienteData.foto_cliente
+          }
+        : null
+      }
+    };
+  }
+  
 }

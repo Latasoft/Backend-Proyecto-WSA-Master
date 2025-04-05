@@ -10,8 +10,10 @@ export async function login(req,res){
         res.status(201).json(response);
 
     }catch(error){
-        console.log('Error al hacer login')
-        throw new Error('Error al iniciar sesion')
+        const status = error?.status || 500;
+        const message = error?.message || 'Error interno del servidor';
+
+        res.status(status).json({ message });
 
     }
 }

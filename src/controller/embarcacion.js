@@ -98,3 +98,20 @@ export async function updateServiceAccion(req,res){
     }
     
 }
+
+
+export async function getEmbarcacionesByIdAndClienteId(req,res){
+    try{
+        const { embarcacionId, cliente_id } = req.params;
+        console.log(cliente_id)
+        console.log(embarcacionId)
+
+        const response = await embarcacionService.getEmbarcacionByIdAndCliente(embarcacionId,cliente_id)
+
+        res.status(200).json(response)
+
+    }catch(error){
+        console.error("Error en getEmbarcacionesByIdAndClienteId:", error);
+        res.status(400).json({ message: 'Error al obtener embarcaciones por id y cliente'});
+    }
+}1

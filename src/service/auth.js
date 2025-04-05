@@ -11,14 +11,14 @@ export class AuthService {
         const user = await User.findOne({ username: loginParsed.username });
 
         if (!user) {
-            return { message: 'Nombre de usuario no encontrado' };
+            throw { status: 401, message: 'Nombre de usuario no encontrado' };
         }
 
         // Verificar la contraseña usando bcrypt
         const isPasswordValid = await comparePassword(loginParsed.password, user.password);
 
         if (!isPasswordValid) {
-            return { message: 'Credenciales incorrectas' };
+            throw { status: 401, message: 'Credenciales incorrectas' };
         }
 
         // Generación del token JWT
