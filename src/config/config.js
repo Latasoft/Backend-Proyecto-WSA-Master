@@ -16,9 +16,9 @@ const PORT = process.env.PORT
 // Token de firma para los usuarios
 const JWT_SECRET = process.env.JWT_SECRET;
 const FIREBASE_STORAGE_BUCKET = process.env.FIREBASE_STORAGE_BUCKET;
-
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',') || [];
 const MONGO_URI=process.env.MONGO_URI;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const FRONTEND_URL =
-  NODE_ENV === 'production' ? process.env.FRONTEND_URL : 'http://localhost:8100';
-export {PORT,FIREBASE_STORAGE_BUCKET,FRONTEND_URL,JWT_SECRET,MONGO_URI,NODE_ENV}
+  NODE_ENV === 'production' ? process.env.FRONTEND_URL : 'http://localhost:4200';
+export {PORT,FIREBASE_STORAGE_BUCKET,FRONTEND_URL,ALLOWED_ORIGINS,JWT_SECRET,MONGO_URI,NODE_ENV}
