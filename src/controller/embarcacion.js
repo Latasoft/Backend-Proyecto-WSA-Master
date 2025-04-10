@@ -102,11 +102,10 @@ export async function updateServiceAccion(req,res){
 
 export async function getEmbarcacionesByIdAndClienteId(req,res){
     try{
-        const { embarcacionId, cliente_id } = req.params;
-        console.log(cliente_id)
-        console.log(embarcacionId)
+        const { embarcacionId, userId } = req.params;
+        
 
-        const response = await embarcacionService.getEmbarcacionByIdAndCliente(embarcacionId,cliente_id)
+        const response = await embarcacionService.getEmbarcacionByIdAndUsuario(embarcacionId,userId)
 
         res.status(200).json(response)
 

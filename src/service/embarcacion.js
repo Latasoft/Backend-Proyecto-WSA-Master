@@ -250,11 +250,33 @@ export class EmbarcacionService {
   }
 
 
-  async getEmbarcacionByIdAndCliente(embarcacionId, clienteId) {
+  async getEmbarcacionByIdAndUsuario(embarcacionId, userId) {
+    // Primero, encuentra el cliente asociado al usuario
+    const cliente = await Client.findOne({ userId: userId });
+    
+    if (!cliente) {
+      return { message: 'Cliente no encontrado para este usuario' };
+    }
+    
+    // Luego usa la función existente pasando el ID del cliente
+    return this.getEmbarcacionByIdAndCliente(embarcacionId, cliente._id.toString());
+  }
+
+  async getEmbarcacionByIdAndUsuario(embarcacionId, userId) {
+    // Encuentra el cliente asociado al usuario
+    const cliente = await Client.findOne({ userId: userId });
+    
+    if (!cliente) {
+      return { message: 'Cliente no encontrado para este usuario' };
+    }
+    
+    const clienteId = cliente._id;
+    
+    // Busca la embarcación con este cliente
     const embarcacionDoc = await Embarcacion.findOne({
       _id: embarcacionId,
       "clientes.cliente_id": clienteId
-    }).populate("clientes.cliente_id", "nombre_cliente apellido_cliente rut_cliente foto_cliente");;
+    }).populate("clientes.cliente_id", "nombre_cliente apellido_cliente rut_cliente foto_cliente");
   
     if (!embarcacionDoc) {
       return { message: 'Embarcación no encontrada para este cliente' };
@@ -264,9 +286,9 @@ export class EmbarcacionService {
   
     // Buscar el cliente solicitado dentro del array
     const clienteData = embarcacion.clientes.find(
-      (c) => c.cliente_id && c.cliente_id._id.toString() === clienteId
+      (c) => c.cliente_id && c.cliente_id._id.toString() === clienteId.toString()
     )?.cliente_id;
-
+  
     return {
       message: 'Embarcación encontrada',
       data: {
@@ -277,14 +299,14 @@ export class EmbarcacionService {
         servicios: embarcacion.servicios,
         permisos_embarcacion: embarcacion.permisos_embarcacion,
         cliente: clienteData
-        ? {
-            _id: clienteData._id,
-            nombre: clienteData.nombre_cliente,
-            apellido: clienteData.apellido_cliente,
-            rut: clienteData.rut_cliente,
-            foto: clienteData.foto_cliente
-          }
-        : null
+          ? {
+              _id: clienteData._id,
+              nombre: clienteData.nombre_cliente,
+              apellido: clienteData.apellido_cliente,
+              rut: clienteData.rut_cliente,
+              foto: clienteData.foto_cliente
+            }
+          : null
       }
     };
   }
