@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Ruta absoluta al archivo de credenciales
-const serviceAccountPath = "./firebase-key.json";
+const serviceAccountPath = "/etc/secrets/firebase-key.json";
 
 // Leer el archivo JSON de credenciales
 const serviceAccount = JSON.parse(
