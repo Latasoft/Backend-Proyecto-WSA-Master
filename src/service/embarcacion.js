@@ -116,7 +116,7 @@ export class EmbarcacionService {
     // 1. Busca la embarcación en la BD
     const embarcacionDoc = await Embarcacion.findById(_id);
     if (!embarcacionDoc) {
-      return { message: 'Embarcacion no encontrada' };
+      throw { status: 404, message: 'Embarcacion  no encontrado' };
     }
   
     // Conviertes a objeto para manipularlo más fácil.

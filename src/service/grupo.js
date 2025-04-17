@@ -72,6 +72,7 @@ export class GrupoService {
   
       // Traemos todos los grupos paginados
       const grupos = await Grupo.find()
+        .sort({ _id: -1 })
         .skip(skip)
         .limit(limit)
         .lean(); // lean() mejora rendimiento
@@ -155,6 +156,28 @@ export class GrupoService {
     }
   }
   
+  async updateGrupo(groupId, updateData) {
+    try {
+      const grupoParsedData=createGroupSchema.parse(updateData)
+      const grupoActualizado = await Grupo.findByIdAndUpdate(
+        groupId,
+        grupoParsedData,
+        { new: true, runValidators: true }
+      ).lean();
+
+      if (!grupoActualizado) {
+        throw { status: 404, message: 'Grupo no encontrado' };
+      }
+
+      return {
+        message: 'Grupo actualizado con éxito'
+      };
+    } catch (error) {
+      console.error('Error en GrupoService.updateGrupo:', error);
+      throw new Error(error.message);
+    }
+  }
+
   
   
 }

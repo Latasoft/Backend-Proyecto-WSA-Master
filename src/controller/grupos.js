@@ -53,9 +53,10 @@ export const addMemberController = async (req, res) => {
 
   export const listGroupsForAdmin = async(req,res)=>{
     try {
-      const page = parseInt(req.query.page) || 1;
+       // Obtener los parámetros de la solicitud, como `page` y `limit`
+       const { page = 1, limit = 10 } = req.query;
 
-        const result = await grupoService.listGrupsForAdmin(page);
+        const result = await grupoService.listGrupsForAdmin(page,limit);
         if (result.message) {
           return res.status(404).json(result);
         }
@@ -68,14 +69,14 @@ export const addMemberController = async (req, res) => {
   }
   export const getGruposByUserId = async (req, res) => {
     const userId = req.params._id;
-    const page = parseInt(req.query.page) || 1;
+    const { page = 1, limit = 10 } = req.query;
   
     if (!userId) {
       return res.status(400).json({ message: "Falta el ID del usuario" });
     }
   
     try {
-      const result = await grupoService.listGruposByUserIdPaginated(userId, page);
+      const result = await grupoService.listGruposByUserIdPaginated(userId, page,limit);
       return res.status(200).json(result);
     } catch (error) {
       console.error("Error en getGruposByUserId:", error);
@@ -96,3 +97,18 @@ export const addMemberController = async (req, res) => {
     }
   };
   
+
+  export const updateGrupoController = async (req, res) => {
+    const groupId = req.params._id;
+    const updateData = req.body; // { name, status, members }
+  
+    try {
+      const result = await grupoService.updateGrupo(groupId, updateData);
+      return res.status(200).json(result);
+    } catch (error) {
+      const status = error?.status || 500;
+        const message = error?.message || 'Error interno del servidor';
+
+        res.status(status).json({ message });
+    }
+  };
