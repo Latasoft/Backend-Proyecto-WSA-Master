@@ -3,6 +3,7 @@ import {Mensaje} from '../model/mensaje.js';
 import {Grupo} from '../model/grupo.js';
 import { createMessageSchema } from '../dtos/mensajes/mensaje.js';
 import { MessageError } from '../utils/messageErrorUtil.js';
+import { sendNotification } from '../utils/notificationUtil.js';
 export class MensajeService {
   async crearMensaje(messageData) {
     try {
@@ -22,32 +23,12 @@ export class MensajeService {
     const grupo = await Grupo.findById(parsedData.group).populate('members', 'fcmTokens username _id');
     if (!grupo) throw new Error('Grupo no encontrado');
 
-     //  4. Notificar a todos los miembros (menos al remitente)
-     const notificados = await Promise.all(grupo.members.map(async (miembro) => {
-      if (miembro._id.toString() === parsedData.sender.toString()) return null;
-
-      if (Array.isArray(miembro.fcmTokens)) {
-        await Promise.all(
-          miembro.fcmTokens.map(async (token) => {
-            await sendPushNotification(token, {
-              title: `Nuevo mensaje de ${mensajePopulado.sender.username}`,
-              body: parsedData.content.length > 50
-                ? parsedData.content.slice(0, 47) + '...'
-                : parsedData.content
-            }, {
-              groupId: parsedData.group,
-              senderId: parsedData.sender
-            });
-          })
-        );
-        return miembro.username;
-      }
-    }));
+    
 
     return {
       message: "Mensaje creado con éxito",
-      mensaje: mensajePopulado,
-      notificados: notificados.filter(Boolean), // Solo los que recibieron push
+      mensaje: mensajePopulado
+    
     };
     } catch (error) {
       console.error("Error al crear mensaje:", error);

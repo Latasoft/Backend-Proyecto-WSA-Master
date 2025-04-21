@@ -14,6 +14,8 @@ export async function createMensajeController(req, res) {
       if (!req.body.group) {
         console.warn("No se especificó el grupo en el body");
       } else {
+        console.log("Grupo:", req.body.group);
+        console.log("Mensaje:", result.mensaje);
         
         getSocketIO().to(req.body.group).emit("newMessage", result.mensaje);
       }
