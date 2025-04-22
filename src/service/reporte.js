@@ -1,8 +1,19 @@
 import { Embarcacion } from "../model/embarcacion.js";
-import puppeteer from 'puppeteer';
-import mongoose from "mongoose"; // Asegúrate de importar esto
+import mongoose from "mongoose";
+import { generatePdf } from 'html-pdf-node';
+import fs from 'fs';
+import path from 'path';
 export class ReporteService {
+  
     async generarPDFServiciosPorCliente(clienteId, fecha_inicio, fecha_fin) {
+      const fmtDMYFromDate = (date) => {
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${day}/${month}/${year}`;
+      };
+      
+  
       console.log(clienteId, fecha_inicio, fecha_fin);
       const desde = new Date(fecha_inicio);
       desde.setUTCHours(0, 0, 0, 0); // 00:00 UTC
@@ -11,24 +22,60 @@ export class ReporteService {
       hasta.setUTCHours(23, 59, 59, 999); // 23:59 UTC
 
       const clienteObjectId = new mongoose.Types.ObjectId(clienteId);
-        const embarcaciones = await Embarcacion.find({
-            'clientes.cliente_id': clienteObjectId,
-            fecha_creacion: { $gte: desde, $lte: hasta }
-        }).populate('clientes.cliente_id', 'nombre_cliente apellido_cliente');
-
-
-        if (embarcaciones.length === 0) {
-          throw new Error('No se encontraron embarcaciones para ese cliente y rango de fechas.');
-        } else {
-            embarcaciones.forEach((e, i) => {
-                console.log(`📄 Embarcación ${i + 1}:`, {
-                    titulo: e.titulo_embarcacion,
-                    destino: e.destino_embarcacion,
-                    servicios: e.servicios?.map(s => s.nombre_servicio)
-                });
-            });
+      
+      // Consulta modificada para evitar duplicados usando aggregate
+      const embarcaciones = await Embarcacion.aggregate([
+        // Match por cliente y rango de fechas
+        {
+            $match: {
+                'clientes.cliente_id': clienteObjectId,
+                fecha_creacion: { $gte: desde, $lte: hasta }
+            }
+        },
+        // Group para eliminar duplicados
+        {
+            $group: {
+                _id: '$_id',
+                titulo_embarcacion: { $first: '$titulo_embarcacion' },
+                destino_embarcacion: { $first: '$destino_embarcacion' },
+                servicios: { $first: '$servicios' },
+                clientes: { $first: '$clientes' },
+                fecha_creacion: { $first: '$fecha_creacion' }
+            }
         }
-        const htmlContent = `
+      ])
+      .exec()
+      .then(async (results) => {
+          // Repoblar manualmente ya que aggregate no soporta populate
+          const populatedResults = await Embarcacion.populate(results, {
+              path: 'clientes.cliente_id',
+              select: 'nombre_cliente apellido_cliente'
+          });
+          return populatedResults;
+      });
+
+      if (embarcaciones.length === 0) {
+        throw new Error('No se encontraron embarcaciones para ese cliente y rango de fechas.');
+      } else {
+        embarcaciones.forEach((e, i) => {
+          console.log(`📄 Embarcación ${i + 1}:`, {
+              titulo: e.titulo_embarcacion,
+              destino: e.destino_embarcacion,
+              servicios: e.servicios?.map(s => s.nombre_servicio)
+          });
+        });
+      }
+
+      
+
+      // En tu función generarPDFServiciosPorCliente:
+      const logoPath = path.resolve('src/assets/logoWSA.svg');
+      const logoSvg = fs.readFileSync(logoPath, 'utf8');
+      console.log('desde antes de formatear', desde, hasta);
+      const desdeStr = fmtDMYFromDate(desde);
+      const hastaStr = fmtDMYFromDate(hasta);
+      console.log('Desde:', desdeStr, 'Hasta:', hastaStr);
+      const htmlContent = `
       <html>
         <head>
         <meta charset="UTF-8">
@@ -42,10 +89,13 @@ export class ReporteService {
           </style>
         </head>
         <body>
+          <div class="header">
+            ${logoSvg}
+          </div>
           <h1>WSA Agencies</h1>
           <h2>Servicios por Embarcación</h2>
           <p style="text-align: center;">
-            <strong>Rango de fechas:</strong> ${desde.toLocaleDateString()} - ${hasta.toLocaleDateString()}
+            <strong>Rango de fechas:</strong> ${desdeStr} - ${hastaStr}
           </p>
 
           <table>
@@ -64,11 +114,11 @@ export class ReporteService {
                   ? `${clienteData.cliente_id.nombre_cliente} ${clienteData.cliente_id.apellido_cliente}`.trim()
                   : 'Desconocido';
 
-            const serviciosUnicos = e.servicios.map(s => s.nombre_servicio);
-            const totalServicios = serviciosUnicos.length;
-            const maxServicios = 6;
+                const serviciosUnicos = e.servicios.map(s => s.nombre_servicio);
+                const totalServicios = serviciosUnicos.length;
+                const maxServicios = 6;
 
-            return `
+                return `
                   <tr>
                     <td>${clienteNombre}</td>
                     <td>${e.titulo_embarcacion}</td>
@@ -81,30 +131,21 @@ export class ReporteService {
                     </td>
                   </tr>
                 `;
-        }).join('')}
+              }).join('')}
             </tbody>
           </table>
         </body>
       </html>
     `;
 
-        const browser = await puppeteer.launch({ headless: 'new' });
-        const page = await browser.newPage();
-        // Bloquear recursos innecesarios
-        await page.setRequestInterception(true);
-        page.on('request', req => {
-            if (['stylesheet', 'image', 'font'].includes(req.resourceType())) {
-                req.abort();
-            } else {
-                req.continue();
-            }
-        });
-        const htmlBase64 = Buffer.from(htmlContent).toString('base64');
-        await page.goto(`data:text/html;base64,${htmlBase64}`, { waitUntil: 'networkidle0' });
-
-        const pdfBuffer = await page.pdf({ format: 'A4' });
-        await browser.close();
-
-        return pdfBuffer;
+      // Generar PDF con html-pdf-node
+      const file = { content: htmlContent };
+      const options = {
+        format: 'A4',
+        margin: { top: '40px', bottom: '40px', left: '40px', right: '40px' }
+      };
+      
+      const pdfBuffer = await generatePdf(file, options);
+      return pdfBuffer;
     }
 }

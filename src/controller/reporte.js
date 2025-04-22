@@ -24,7 +24,7 @@ export const generarReportePDF = async (req, res) => {
     // Enviar PDF como respuesta
     res.set({
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="reporte-usuario.pdf"',
+        'Content-Disposition': 'attachment; filename="reporte-servicios.pdf"',
         'Content-Length': pdfBuffer.length
       });
       
