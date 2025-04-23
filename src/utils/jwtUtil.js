@@ -25,3 +25,12 @@ export const verifyToken = (token) => {
     throw error;
   }
 };
+
+export const generateResetToken = (userId) => {
+  const payload = {
+    _id: userId,
+    type: 'password_reset', // opcional, por seguridad
+  };
+
+  return jwt.sign(payload, secret, { expiresIn: '15m' });
+};

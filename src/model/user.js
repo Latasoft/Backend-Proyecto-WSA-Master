@@ -17,6 +17,11 @@ const userSchema= new mongoose.Schema({
         enum:rolEnum,
         required:true
     },
+    email:{
+        type:String,
+        required:true,
+        unique:true
+    },
     fcmTokens: {
         type: [String],
         default: []
