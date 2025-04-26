@@ -1,4 +1,4 @@
-import { RegistroDescargaReporteService } from "../service/registroSolicitud.js";
+import { RegistroDescargaReporteService } from "../service/registroDescargaReporte.js";
 const registroSolicitudService = new RegistroDescargaReporteService();
 
 export async function crearRegistroDescargaReporte(req, res) {

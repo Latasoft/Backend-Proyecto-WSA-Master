@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const registroRespoSchema= new mongoose.Schema({
+const registroDescargaRespoSchema= new mongoose.Schema({
     id_solicitante:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "user", // el nombre del modelo de User
@@ -19,4 +19,4 @@ const registroRespoSchema= new mongoose.Schema({
       }
 })
 
-export const RegistroResporte= mongoose.model('registroDescargaReporte',registroRespoSchema)
+export const RegistroDescargaResporte= mongoose.model('registroDescargaReporte',registroDescargaRespoSchema)

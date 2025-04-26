@@ -1,5 +1,5 @@
 import { crearRegistroDescargaReporteSchema } from "../dtos/reportes/registroDescargaReporte.js";
-import { RegistroResporte } from "../model/registroReporte.js";
+import { RegistroDescargaResporte } from "../model/registroDescargaReporte.js";
 
 export class RegistroDescargaReporteService {
     async crearRegistroDescargadReporte(solicitud) {
@@ -15,7 +15,7 @@ export class RegistroDescargaReporteService {
         
             // ✅ Solo si los datos fueron validados correctamente
             const solicitudValida = result.data;
-            const nuevaSolicitud = await RegistroResporte.create(
+            const nuevaSolicitud = await RegistroDescargaResporte.create(
                 {
                     id_solicitante: solicitudValida.id_solicitante,
                     rango_fecha_inicio: solicitudValida.rango_fecha_inicio,
@@ -32,7 +32,7 @@ export class RegistroDescargaReporteService {
         const skip = (page - 1) * limit;
         try{
              // Obtener los usuarios paginados
-            const solicitud = await RegistroResporte.find()
+            const solicitud = await RegistroDescargaResporte.find()
             .skip(skip)       // Omitir los primeros registros (según la página)
             .limit(limit)     // Limitar la cantidad de resultados por página
             .populate({
