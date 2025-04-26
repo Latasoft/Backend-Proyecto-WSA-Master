@@ -19,4 +19,4 @@ const registroRespoSchema= new mongoose.Schema({
       }
 })
 
-export const RegistroResporte= mongoose.model('registroReporte',registroRespoSchema)
+export const RegistroResporte= mongoose.model('registroDescargaReporte',registroRespoSchema)

@@ -28,3 +28,5 @@ const solicitudReporteSchema = new mongoose.Schema({
     default: null
   }
 });
+
+export const SolicitudReporte = mongoose.model('solicitudReporte', solicitudReporteSchema);
