@@ -3,13 +3,14 @@ import { EMAIL_USER } from "../config/config.js";
 
 // Servicio centralizado para notificaciones
 export class EmailService {
-    static async enviarCorreo(destinatario, asunto, cuerpoTexto) {
+    static async enviarCorreo(destinatario, asunto,text, html ) {
         try {
           const info = await transporter.sendMail({
             from: `"Soporte" <${EMAIL_USER}>`,
             to: destinatario,
             subject: asunto,
-            text: cuerpoTexto, // También podrías agregar un campo `html` si deseas
+            text:text,
+            html: html , // También podrías agregar un campo `html` si deseas
           });
     
           console.log("Correo enviado:", info.messageId);

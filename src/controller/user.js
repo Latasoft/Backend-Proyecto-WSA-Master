@@ -2,10 +2,10 @@ import {  UserService } from "../service/user.js";
 const userService= new UserService();
 export async function createUser(req,res){
     try{
-        
+        console.log(req.body)
         const response= await userService.createUser(req.body)
         res.status(201).json(response);
-    }catch(error){
+    }catch(error){ 
         console.error(error.message);
         throw new Error('Error crenado usuario.');
 

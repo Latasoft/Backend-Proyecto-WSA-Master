@@ -7,6 +7,7 @@ import { hashPassword } from "../utils/bcryptUtil.js";
 export class UserService{
     async createUser(data) {
         try {
+          console.log(data)
           // 1. Validar y crear User
           const userDataParsed = UserSchema.parse(data);
           const hashedPassword = await hashPassword(userDataParsed.password);
@@ -15,6 +16,7 @@ export class UserService{
             username: userDataParsed.username,
             password: hashedPassword,
             tipo_usuario: userDataParsed.tipo_usuario,
+            email:userDataParsed.email
           });
       
           // 2. Si es CLIENTE, crear el Client
@@ -71,7 +73,7 @@ export class UserService{
         // Actualizar el resto de los datos, sin modificar la contraseña si no fue proporcionada
         existeUsuario.username = parsedUser.username || existeUsuario.username;
         existeUsuario.rol_usuario = parsedUser.tipo_usuario || existeUsuario.rol_usuario;
-    
+        existeUsuario.email = parsedUser.email || existeUsuario.email;
         // Guardar los cambios
         await existeUsuario.save();
     
