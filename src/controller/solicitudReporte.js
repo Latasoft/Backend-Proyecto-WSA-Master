@@ -1,4 +1,4 @@
-import { SolicitudReporteService } from "../service/SolicitudReporte.js";
+import { SolicitudReporteService } from "../service/solicitudReporte.js";
 const solicitudReporteService= new SolicitudReporteService();
 
 export async function crearSolicitudReporte(req, res) {
