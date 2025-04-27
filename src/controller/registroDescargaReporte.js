@@ -14,6 +14,7 @@ export async function crearRegistroDescargaReporte(req, res) {
 export async function obtenerTodasLasSolicitudes(req, res) {
     try {
         const { page = 1, limit = 10 } = req.query;
+        console.log(page, limit)
         const solicitudes = await registroSolicitudService.obtenerTodasLasSolicitudesPaginadas(page, limit);
         return res.status(200).json(solicitudes);
     } catch (error) {

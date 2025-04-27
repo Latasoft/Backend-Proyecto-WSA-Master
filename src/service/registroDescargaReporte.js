@@ -32,17 +32,27 @@ export class RegistroDescargaReporteService {
         const skip = (page - 1) * limit;
         try{
              // Obtener los usuarios paginados
-            const solicitud = await RegistroDescargaResporte.find()
+            const solicitudBD  = await RegistroDescargaResporte.find()
             .skip(skip)       // Omitir los primeros registros (según la página)
             .limit(limit)     // Limitar la cantidad de resultados por página
             .populate({
                 path: 'id_solicitante',    // 👉 campo de referencia en RegistroReporte
-                select: 'username',         // 👉 qué campo quieres traer
+                select: 'username -_id',         // 👉 qué campo quieres traer
             })
             .sort({ createdAt: -1 })
             .exec();
-            const totalSolicitudes = await RegistroResporte.countDocuments();
+
+            const totalSolicitudes = await RegistroDescargaResporte.countDocuments();
             
+             // 🔥 Aquí haces el "map" para cambiar id_solicitante -> solicitante
+        const solicitud = solicitudBD.map(doc => ({
+            _id: doc._id,
+            solicitante: doc.id_solicitante, // 👈 renombrado aquí
+            rango_fecha_inicio: doc.rango_fecha_inicio,
+            rango_fecha_termino: doc.rango_fecha_termino,
+            fecha_descarga: doc.fecha_descarga,
+        }));
+
             return {
                 message: 'Solictudes encontradas',
                 solicitud,
@@ -52,7 +62,8 @@ export class RegistroDescargaReporteService {
             };
         }
         catch(error){
-            throw  {message:'Error al obtener las solicitudes de reporte'}
+            console.error('❌ Error exacto al obtener solicitudes:', error);
+            throw  {message:'Error al obtener las solicitudes de reporte',error}
         }
     
     } 
