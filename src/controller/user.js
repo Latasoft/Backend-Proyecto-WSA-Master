@@ -7,7 +7,7 @@ export async function createUser(req,res){
         res.status(201).json(response);
     }catch(error){ 
         console.error(error.message);
-        throw new Error('Error crenado usuario.');
+        res.status(error.status || 500).json({ message: error.message})
 
     }
 }

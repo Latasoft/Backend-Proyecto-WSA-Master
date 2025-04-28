@@ -3,11 +3,12 @@ import { User } from "../model/user.js";
 import { Client } from "../model/cliente.js";
 import { UserSchema,UpdateUserSchema } from "../dtos/users/user.js";
 import { hashPassword } from "../utils/bcryptUtil.js";
-
+import{EmailService} from "../service/email.js"
+import { FRONTEND_URL } from "../config/config.js";
+import { generateResetToken } from "../utils/jwtUtil.js";
 export class UserService{
     async createUser(data) {
         try {
-          console.log(data)
           // 1. Validar y crear User
           const userDataParsed = UserSchema.parse(data);
           const hashedPassword = await hashPassword(userDataParsed.password);
@@ -34,9 +35,18 @@ export class UserService{
             } catch (errorCliente) {
               // Si falla la creación del cliente, borramos el User recién creado
               await User.findByIdAndDelete(newUser._id);
-              return {message:'Error al registrar rut cliente ya existe'}
+              throw {status: 401,message:'Error al registrar rut cliente ya existe'}
             }
           }
+           // 4. 🔥 Enviar correo de bienvenida + link de creación de contraseña
+          const token = generateResetToken(newUser._id);
+          const linkCambioPassword = `${FRONTEND_URL}/change-password?token=${token}`;
+
+          await EmailService.enviarCorreoCreacionUsuarioYUpdatePassword(
+            newUser.email,
+            newUser.username,
+            linkCambioPassword
+          );
       
           // 3. Si todo salió bien
           return { message: "Usuario registrado correctamente" };
