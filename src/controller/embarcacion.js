@@ -5,22 +5,30 @@ const embarcacionService= new EmbarcacionService();
 
 
 export async function crearEmbarcacion(req,res){
-    const dataParse= EmbarcacionDto.parse(req.body)
+    try{
+        const dataParse= EmbarcacionDto.parse(req.body)
+        console.log(dataParse)
 
-    const response = await embarcacionService.crearEmbarcacion(dataParse)
+        const response = await embarcacionService.crearEmbarcacion(dataParse)
 
-    res.status(200).json(response)
+        res.status(200).json(response)
+    }catch(error){
+        res.status(error.status || 500).json({ message: error.message  });
+    }
     
 }
 
 
 export async function getEmbarcacionById(req,res){
-    const {_id}= req.params;
+    try{
+        const {_id}= req.params;
 
-    
-    const response= await embarcacionService.getEmbarcacionById(_id)
+        const response= await embarcacionService.getEmbarcacionById(_id)
 
-    res.status(200).json(response)
+        res.status(200).json(response)
+    }catch(error){
+        res.status(error.status || 500).json({ message: error.message  });
+    }
 }
 
 export async function getEmbarcacionesByTrabajadorId(req,res) {
@@ -33,7 +41,7 @@ export async function getEmbarcacionesByTrabajadorId(req,res) {
     res.status(200).json(response)
 
     }catch(error){
-        res.status(400).json(response)
+        res.status(error.status || 500).json({ message: error.message  });
     }    
 }
 
@@ -41,18 +49,18 @@ export async function getEmbarcacionesByClienteId(req,res) {
     try{
         const {_id}= req.params;
          // Falta extraer page y limit si los recibes por query
-    const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10 } = req.query;
 
-    const response = await embarcacionService.getEmbarcacionByIdCliente(
-      _id,
-      Number(page),
-      Number(limit)
-    );
+        const response = await embarcacionService.getEmbarcacionByIdCliente(
+        _id,
+        Number(page),
+        Number(limit)
+        );
 
-    res.status(200).json(response)
+        res.status(200).json(response)
 
     }catch(error){
-        res.status(400).json(response)
+        res.status(error.status || 500).json({ message: error.message  });
     }    
 }
 
@@ -63,7 +71,7 @@ export async function getAllEmbarcaciones(req,res){
 
         res.status(200).json(response)
     }catch(error){
-        res.status(400).json(response)
+        res.status(error.status || 500).json({ message: error.message  });
     }
 
 }
@@ -78,7 +86,7 @@ export async function updateEmbarcacion(req,res){
     res.status(200).json(response)
     }catch(error){
         console.error("Error en crearEmbarcacion:", error);
-        res.status(400).json({ message: "Error al crear embarcacion" });
+        res.status(error.status || 500).json({ message: error.message  });
     }
 }
 
@@ -111,6 +119,6 @@ export async function getEmbarcacionesByIdAndClienteId(req,res){
 
     }catch(error){
         console.error("Error en getEmbarcacionesByIdAndClienteId:", error);
-        res.status(400).json({ message: 'Error al obtener embarcaciones por id y cliente'});
+        res.status(error.status || 500).json({ message: error.message  });
     }
 }1

@@ -37,10 +37,6 @@ const TrabajadorDto = z.object({
     }),
 });
 
-// DTO para permisos
-const PermisoDto = z.object({
-  nombre_permiso: z.string(),
-});
 
 // DTO para cada acción dentro de un estado
 const AccionDto = z.object({
@@ -115,9 +111,26 @@ const EmbarcacionDto = z.object({
   clientes: z.array(clientesDto).default([]),
   is_activated: z.boolean().default(true),
   trabajadores: z.array(TrabajadorDto).default([]),
-  permisos_embarcacion: z.array(PermisoDto).default([]),
   // Aquí se incluye la nueva estructura para servicios
   servicios: z.array(ServicioDto).default([]),
+  fecha_arribo: z.preprocess(
+    (arg) => {
+      if (arg === null || arg === undefined) return undefined;
+      if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+      return arg;
+    },
+    z.date().optional()
+  ),
+  fecha_zarpe: z.preprocess(
+    (arg) => {
+      if (arg === null || arg === undefined) return undefined;
+      if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+      return arg;
+    },
+    z.date().optional()
+  ),
+  
+
 });
 
 // Exporta los DTOs necesarios

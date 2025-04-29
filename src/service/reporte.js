@@ -40,7 +40,9 @@ export class ReporteService {
                 destino_embarcacion: { $first: '$destino_embarcacion' },
                 servicios: { $first: '$servicios' },
                 clientes: { $first: '$clientes' },
-                fecha_creacion: { $first: '$fecha_creacion' }
+                fecha_creacion: { $first: '$fecha_creacion' },
+                fecha_arribo: { $first: '$fecha_arribo' },
+                fecha_zarpe: { $first: '$fecha_zarpe' }
             }
         }
       ])
@@ -55,12 +57,14 @@ export class ReporteService {
       });
 
       if (embarcaciones.length === 0) {
-        throw new Error('No se encontraron embarcaciones para ese cliente y rango de fechas.');
+        throw {status:404,message:'No se encontraron embarcaciones para ese cliente y rango de fechas.'};
       } else {
         embarcaciones.forEach((e, i) => {
           console.log(`📄 Embarcación ${i + 1}:`, {
               titulo: e.titulo_embarcacion,
               destino: e.destino_embarcacion,
+              fecha_arribo:e.fecha_arribo,
+              fecha_zarpe:e.fecha_zarpe,
               servicios: e.servicios?.map(s => s.nombre_servicio)
           });
         });
@@ -71,10 +75,8 @@ export class ReporteService {
       // En tu función generarPDFServiciosPorCliente:
       const logoPath = path.resolve('src/assets/logoWSA.svg');
       const logoSvg = fs.readFileSync(logoPath, 'utf8');
-      console.log('desde antes de formatear', desde, hasta);
       const desdeStr = fmtDMYFromDate(desde);
       const hastaStr = fmtDMYFromDate(hasta);
-      console.log('Desde:', desdeStr, 'Hasta:', hastaStr);
       const htmlContent = `
       <html>
         <head>
@@ -104,6 +106,8 @@ export class ReporteService {
                 <th>Cliente</th>
                 <th>Nombre Embarcaci&oacute;n</th>
                 <th>Destino</th>
+                <th>Fecha de Arribo</th>
+                <th>Fecha de Zarpe</th>
                 <th>Servicios (X / 6)</th>
               </tr>
             </thead>
@@ -118,11 +122,23 @@ export class ReporteService {
                 const totalServicios = serviciosUnicos.length;
                 const maxServicios = 6;
 
+                const fechaArribo = e.fecha_arribo ? fmtDMYFromDate(new Date(e.fecha_arribo)) : 'Sin fecha';
+                const fechaZarpe = e.fecha_zarpe ? fmtDMYFromDate(new Date(e.fecha_zarpe)) : 'Sin fecha';
+      
+                console.log(`📄 Embarcación ${e.titulo_embarcacion}:`, {
+                  cliente: clienteNombre,
+                  destino: e.destino_embarcacion,
+                  fechaArribo,
+                  fechaZarpe,
+                  servicios: serviciosUnicos
+                });
                 return `
                   <tr>
                     <td>${clienteNombre}</td>
                     <td>${e.titulo_embarcacion}</td>
                     <td>${e.destino_embarcacion}</td>
+                    <td>${fechaArribo}</td>
+                    <td>${fechaZarpe}</td>
                     <td>
                       <ul style="margin: 0; padding-left: 20px;">
                         ${serviciosUnicos.map(s => `<li>${s}</li>`).join('')}

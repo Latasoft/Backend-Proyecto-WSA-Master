@@ -15,6 +15,8 @@ export class EmbarcacionService {
       const embarcacion = await Embarcacion.create({
         titulo_embarcacion: validData.titulo_embarcacion,
         destino_embarcacion: validData.destino_embarcacion,
+        fecha_arribo: validData.fecha_arribo || null, // ➡️ opcional
+        fecha_zarpe: validData.fecha_zarpe || null, 
         clientes: validData.clientes,
         is_activated: validData.is_activated,
         trabajadores: validData.trabajadores,
@@ -24,10 +26,9 @@ export class EmbarcacionService {
         // Nota: Si tienes otros campos como ubicaciones, agrégalos aquí.
       });
 
-      return { message: 'Embarcacion creada exitosamente' };
+      throw {status:201, message: 'Embarcacion creada exitosamente' };
     } catch (error) {
-      console.error('Error al crear la embarcación:', error);
-      throw error;
+      
     }
   }
 
@@ -71,7 +72,7 @@ export class EmbarcacionService {
       // Buscar la embarcación existente para fusionar datos
       const embarcacionExistente = await Embarcacion.findById(_id);
       if (!embarcacionExistente) {
-        return { message: "Embarcación no encontrada" };
+        throw {status:404, message: "Embarcación no encontrada" };
       }
   
       // Fusionar servicios existentes con los nuevos sin eliminar los previos
@@ -104,7 +105,7 @@ export class EmbarcacionService {
         { new: true, runValidators: true } // Aplicar validaciones
       );
   
-      return { message: "Embarcación actualizada con éxito", data: updatedEmbarcacion };
+      return {status:201, message: "Embarcación actualizada con éxito", data: updatedEmbarcacion };
     } catch (error) {
       console.error("Error en actualizarEmbarcacion:", error);
       throw error;
@@ -179,7 +180,7 @@ export class EmbarcacionService {
     try {
       const cliente = await Client.findOne({ userId: _id });
       if (!cliente) {
-        return { message: 'Id de cliente no existe' };
+        throw {status:404, message: 'Id de cliente no existe' };
       }
 
       const skip = (page - 1) * limit;
@@ -196,7 +197,7 @@ export class EmbarcacionService {
       const total = await Embarcacion.countDocuments({ 'clientes.cliente_id': cliente._id });
 
       if (embarcaciones.length === 0) {
-        return { message: 'Embarcacion no encontrada' };
+        throw { status:404,message: 'Embarcacion no encontrada' };
       }
 
       return {
@@ -230,7 +231,7 @@ export class EmbarcacionService {
       const total = await Embarcacion.countDocuments({});
 
       if (embarcaciones.length === 0) {
-        return { message: 'No se encontraron embarcaciones' };
+        throw {status:404, message: 'No se encontraron embarcaciones' };
       }
 
       return {
@@ -255,7 +256,7 @@ export class EmbarcacionService {
     const cliente = await Client.findOne({ userId: userId });
     
     if (!cliente) {
-      return { message: 'Cliente no encontrado para este usuario' };
+      throw { status:404,message: 'Cliente no encontrado para este usuario' };
     }
     
     // Luego usa la función existente pasando el ID del cliente
@@ -267,7 +268,7 @@ export class EmbarcacionService {
     const cliente = await Client.findOne({ userId: userId });
     
     if (!cliente) {
-      return { message: 'Cliente no encontrado para este usuario' };
+      throw { status:404,message: 'Cliente no encontrado para este usuario' };
     }
     
     const clienteId = cliente._id;
@@ -279,7 +280,7 @@ export class EmbarcacionService {
     }).populate("clientes.cliente_id", "nombre_cliente apellido_cliente rut_cliente foto_cliente");
   
     if (!embarcacionDoc) {
-      return { message: 'Embarcación no encontrada para este cliente' };
+      throw {status:404, message: 'Embarcación no encontrada para este cliente' };
     }
   
     const embarcacion = embarcacionDoc.toObject();
