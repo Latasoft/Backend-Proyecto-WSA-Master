@@ -5,7 +5,8 @@ import {
     findUserById,
     getAllUsersPaginated,
     getAllEmployes,
-    saveFcmTokenController
+    saveFcmTokenController,
+    deleteUserById
 } from '../controller/user.js'; // Importa los controladores
 
 import { authMiddleware } from '../middleware/auth.js';
@@ -18,6 +19,7 @@ router.get('/',getAllUsersPaginated)
 router.get('/trabajadores',getAllEmployes)
 router.get('/:_id',findUserById)
 router.put('/:_id',updateUser)
+router.delete('/:_id',authMiddleware,verifyRoles('ADMINISTRADOR'),deleteUserById)
 
 export default router;
 

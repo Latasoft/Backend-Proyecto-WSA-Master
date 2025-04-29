@@ -7,7 +7,7 @@ const embarcacionService= new EmbarcacionService();
 export async function crearEmbarcacion(req,res){
     try{
         const dataParse= EmbarcacionDto.parse(req.body)
-        console.log(dataParse)
+        
 
         const response = await embarcacionService.crearEmbarcacion(dataParse)
 
@@ -121,4 +121,18 @@ export async function getEmbarcacionesByIdAndClienteId(req,res){
         console.error("Error en getEmbarcacionesByIdAndClienteId:", error);
         res.status(error.status || 500).json({ message: error.message  });
     }
-}1
+}
+
+export async function deleteEmbarcacionById(req,res){
+    try{
+        const { _id } = req.params;
+
+        const response = await embarcacionService.deleteEmbarcacionById(_id)
+
+        res.status(200).json(response)
+
+    }catch(error){
+        console.error("Error en deleteEmbarcacionById:", error);
+        res.status(error.status || 500).json({ message: error.message  });
+    }
+}

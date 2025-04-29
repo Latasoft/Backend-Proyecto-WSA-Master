@@ -184,5 +184,28 @@ export class UserService{
 
     }
     
+    async deleteUserById(_id){
+      try{
+        const usuario= await User.findById(_id)
+        if(!usuario){
+          throw {status:404,message:'Usuario no existe'}
+        }
+        if (usuario.tipo_usuario === 'CLIENTE') {
+          await Client.findOneAndDelete({ userId: _id });
+        }
+    
+        await User.findByIdAndDelete(_id);
+
+        return { message: 'Usuario eliminado correctamente' };
+      }catch(error){
+        console.error('Error al eliminar usuario:', error);
+        throw {
+          status: error.status || 500,
+          message: error.message || 'Error interno al eliminar usuario'
+        };
+      }
+
+
+    }
     
 }

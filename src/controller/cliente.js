@@ -8,8 +8,7 @@ export async function actualizarCliente(req, res) {
       // El id del cliente que viene por la URL: /clientes/:id
       const { _id } = req.params;
 
-      console.log(_id)
-  
+      
       // req.body contiene la data (rut_cliente, nombre_cliente, etc.).
       // req.files contiene los archivos subidos.
       const resultado = await clienteService.actualizarCliente(_id, req.body, req.file);
@@ -23,18 +22,26 @@ export async function actualizarCliente(req, res) {
   }
 
 export async function buscarById(req,res){
-    const {_id}= req.params;
+    try{
+      const {_id}= req.params;
 
-    const response = await clienteService.buscarById(_id)
+      const response = await clienteService.buscarById(_id)
 
-    res.status(200).json(response)
+      res.status(200).json(response)
+    }catch(error){
+      res.status(error.status || 500).json({ message: error.message || 'Error al buscar cliente por id' });
+    }
 }
 
 export async function traerTodosClientesPaginados(req,res){
-    const { page = 1, limit = 10 } = req.query;
+    try{
+      const { page = 1, limit = 10 } = req.query;
     
-            // Llamar al método del servicio para obtener los usuarios paginados
-    const result = await clienteService.traerCLientesPaginados(page, limit);
-    res.status(200).json(result)
+      // Llamar al método del servicio para obtener los usuarios paginados
+      const result = await clienteService.traerCLientesPaginados(page, limit);
+      res.status(200).json(result)
+    }catch(error){
+      res.status(error.status || 500).json({ message: error.message || 'Error al traer clientes' });
+    }
     
 }

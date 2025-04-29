@@ -311,5 +311,21 @@ export class EmbarcacionService {
       }
     };
   }
+  async deleteEmbarcacionById(_id){
+    try {
+      const embarcacion = await Embarcacion.findByIdAndDelete(_id);
+      if (!embarcacion) {
+        throw { status: 404, message: 'Embarcación no encontrada' };
+      }
   
+  
+      return { message: 'Embarcación eliminada exitosamente' };
+    } catch (error) {
+      console.error('Error al eliminar embarcación:', error);
+      throw {
+        status: error.status || 500,
+        message: error.message || 'Error interno al eliminar embarcación'
+      };
+    }
+  }
 }

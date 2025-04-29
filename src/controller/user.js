@@ -2,7 +2,6 @@ import {  UserService } from "../service/user.js";
 const userService= new UserService();
 export async function createUser(req,res){
     try{
-        console.log(req.body)
         const response= await userService.createUser(req.body)
         res.status(201).json(response);
     }catch(error){ 
@@ -13,7 +12,8 @@ export async function createUser(req,res){
 }
 
 export async function updateUser(req,res){
-    const { _id } = req.params;
+    try{
+        const { _id } = req.params;
       const userData = req.body;
       
       
@@ -22,6 +22,12 @@ export async function updateUser(req,res){
       res.status(201).json(
         updatedUser 
       );
+
+    }
+    catch(error){
+        console.error(error.message);
+        res.status(error.status || 500).json({ message: error.message})
+    }
 }
 
 
@@ -51,7 +57,7 @@ export async function getAllUsersPaginated(req, res) {
     } catch (error) {
         // Manejar los errores
         console.error('Error al obtener usuarios:',error.message);
-        res.status(500).json({ message: 'Error interno del servidor' });
+        res.status(error.status || 500).json({ message: error.message})
     }
 }
 
@@ -63,7 +69,7 @@ export async function getAllEmployes(req,res){
          res.status(200).json(result)
 
     }catch(error){
-        throw error
+        res.status(error.status || 500).json({ message: error.message})
 
     }
 }
@@ -85,3 +91,13 @@ export async function saveFcmTokenController(req, res) {
       return res.status(500).json({ message: 'Error al guardar el token FCM' });
     }
   }
+
+  export async function deleteUserById(req,res){
+    try{
+        const {_id}= req.params;
+        const response= await userService.deleteUserById(_id)
+        res.status(200).json(response)
+    }catch(error){
+        res.status(error.status || 500).json({ message: error.message  });
+    }
+}
