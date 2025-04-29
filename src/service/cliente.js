@@ -13,9 +13,9 @@ export class ClienteService {
       }
 
       // 2. Actualizar datos de texto
-      clienteExistente.rut_cliente = data.rut_cliente || clienteExistente.rut_cliente;
       clienteExistente.nombre_cliente = data.nombre_cliente || clienteExistente.nombre_cliente;
-      clienteExistente.apellido_cliente = data.apellido_cliente || clienteExistente.apellido_cliente;
+      clienteExistente.pais_cliente = data.pais_cliente || clienteExistente.pais_cliente;
+      clienteExistente.dato_contacto_cliente = data.dato_contacto_cliente || clienteExistente.dato_contacto_cliente;
 
       // 3. Si llega un nuevo archivo en `file`, eliminar la foto anterior (si existe) y subir la nueva
       if (file) {

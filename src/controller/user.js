@@ -46,11 +46,10 @@ export async function findUserById(req,res){
 export async function getAllUsersPaginated(req, res) {
     try {
         // Obtener los parámetros de la solicitud, como `page` y `limit`
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10,role } = req.query;
 
-    
         // Llamar al método del servicio para obtener los usuarios paginados
-        const result = await userService.getAllUsersPaginated(page, limit);
+        const result = await userService.getAllUsersPaginated(page, limit,role);
 
         // Devolver la respuesta con los datos de la paginación
         res.status(200).json(result);

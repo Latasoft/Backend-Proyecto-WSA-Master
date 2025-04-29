@@ -5,16 +5,15 @@ const clientSchema= new mongoose.Schema({
         ref: "user", // el nombre del modelo de User
         required: true
       },
-    rut_cliente:{
+    pais_cliente:{
         type:String,
-        required:true,
-        unique:true
+        required:true
     },
     nombre_cliente:{
         type:String,
         required:true
     },
-    apellido_cliente:{
+    dato_contacto_cliente:{
         type:String,
         required:true
     },

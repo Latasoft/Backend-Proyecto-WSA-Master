@@ -22,14 +22,14 @@ export class UserService{
       
           // 2. Si es CLIENTE, crear el Client
           if (userDataParsed.tipo_usuario === "CLIENTE") {
-            const { rut_cliente, nombre_cliente, apellido_cliente, foto_cliente } = data;
+            const {  nombre_cliente, pais_cliente,dato_contacto_cliente ,foto_cliente } = data;
       
             try {
               await Client.create({
                 userId: newUser._id,
-                rut_cliente,
+                pais_cliente,
                 nombre_cliente,
-                apellido_cliente,
+                dato_contacto_cliente,
                 foto_cliente: foto_cliente || "",
               });
             } catch (errorCliente) {
@@ -104,19 +104,22 @@ export class UserService{
         return {message:'Usuario encontrado',userResponse}
     }
 
-    async getAllUsersPaginated(page = 1, limit = 10) {
+    async getAllUsersPaginated(page = 1, limit = 10,role) {
         // Calcular el número de registros a omitir
         const skip = (page - 1) * limit;
-    
+        const query = role ? { tipo_usuario: role } : {}; // Si no hay rol, trae todos
+
+        
         try {
             // Obtener los usuarios paginados
-            const users = await User.find()
+            const users = await User.find(query)
                 .skip(skip)       // Omitir los primeros registros (según la página)
                 .limit(limit)     // Limitar la cantidad de resultados por página
                 .exec();
-    
+              
+        
             // Contar el total de usuarios para saber cuántas páginas hay
-            const totalUsers = await User.countDocuments();
+            const totalUsers = await User.countDocuments(query);
     
             // Retornar los usuarios y la información de la paginación
             return {
