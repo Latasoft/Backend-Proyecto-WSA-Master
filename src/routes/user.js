@@ -13,7 +13,7 @@ import { authMiddleware } from '../middleware/auth.js';
 import { verifyRoles } from '../middleware/verifyRoles.js';
 const router = express.Router();
 
-router.post('/',authMiddleware,verifyRoles('ADMINISTRADOR'),createUser)
+router.post('/', authMiddleware, verifyRoles('ADMINISTRADOR'),createUser)
 router.post('/fcm-token', authMiddleware, saveFcmTokenController);
 router.get('/',getAllUsersPaginated)
 router.get('/trabajadores',getAllEmployes)
