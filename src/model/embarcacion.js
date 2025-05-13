@@ -87,6 +87,21 @@ const embarcacionSchema = new mongoose.Schema({
   fecha_creacion: { type: Date, default: Date.now }, 
   fecha_arribo: { type: Date, required:false},
   fecha_zarpe: { type: Date, required:false},
+
+// AGREGO EL ESTADO DE LAS NAVES Y COMENTARIO DE LA MISMA 
+
+  estado_actual: {
+    type: String,
+    enum: ['aprobado', 'observaciones', 'en_proceso'],
+    default: 'en_proceso'
+  },
+  comentario_general: {
+    type: String,
+    default: ''
+
+//BLOQUE SUPERIOR ES EL CAMBIO DE LAS NAVES 
+
+  },
   clientes: [
     {
       cliente_id: {

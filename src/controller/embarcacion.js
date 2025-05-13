@@ -1,6 +1,10 @@
 import { EmbarcacionService } from "../service/embarcacion.js";
 import { EmbarcacionDto } from "../dtos/embarcaciones/embarcacion.js";
 import { response } from "express";
+//AGREGO NUEVA FUNCION PARA ESTADO Y COMENTARIO
+import { Embarcacion } from "../model/embarcacion.js";
+
+
 const embarcacionService= new EmbarcacionService();
 
 
@@ -134,5 +138,30 @@ export async function deleteEmbarcacionById(req,res){
     }catch(error){
         console.error("Error en deleteEmbarcacionById:", error);
         res.status(error.status || 500).json({ message: error.message  });
+    }
+}
+
+//FUNCION
+
+export const actualizarEstadoYComentario = async (req,res) => {
+
+    const { _id } = req.params;
+    const { estado_actual, comentario_general } =req.body;
+
+    try{
+        const embarcacion = await Embarcacion.findByIdAndUpdate(
+            _id,
+            { estado_actual, comentario_general },
+            { new: true }
+        );
+        
+        if (!embarcacion) {
+            return res.status(404).json({ message: 'Embarcación no encontrada'});
+        }
+
+        res.json(embarcacion);
+    } catch (error) {
+        console.error ('Error al actualizar estado/comentario:', error );
+        res.status(500).json({ message: 'error del servido' });
     }
 }
