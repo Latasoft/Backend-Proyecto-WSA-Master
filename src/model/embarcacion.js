@@ -6,7 +6,9 @@ const accionSchema = new mongoose.Schema(
     nombre: { type: String, required: true },
     fecha: { type: Date, required: true },
     comentario:{type:String,required:false},
-    incidente:{type:Boolean,required:false}
+    incidente:{type:Boolean,required:false},
+    servicio_relacionado: { type: String, default: '' }
+
 
   },
   { _id: false }
@@ -87,6 +89,9 @@ const embarcacionSchema = new mongoose.Schema({
   fecha_creacion: { type: Date, default: Date.now }, 
   fecha_arribo: { type: Date, required:false},
   fecha_zarpe: { type: Date, required:false},
+  fecha_servicio_relacionado: { type: Date },
+  nota_servicio_relacionado: { type: String, default: '' },
+
 
 // AGREGO EL ESTADO DE LAS NAVES Y COMENTARIO DE LA MISMA 
 
@@ -99,9 +104,19 @@ const embarcacionSchema = new mongoose.Schema({
     type: String,
     default: ''
 
-//BLOQUE SUPERIOR ES EL CAMBIO DE LAS NAVES 
+
 
   },
+  servicio: { type: String, default: '' },
+  subservicio: { type: String, default: '' },
+  servicio_relacionado: { type: String, default: '' },
+
+
+
+//BLOQUE SUPERIOR ES EL CAMBIO DE LAS NAVES 
+
+
+
   clientes: [
     {
       cliente_id: {

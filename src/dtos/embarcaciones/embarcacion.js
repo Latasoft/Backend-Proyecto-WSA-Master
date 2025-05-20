@@ -106,6 +106,12 @@ const ServicioDto = z.object({
 
 // DTO para la Embarcación
 const EmbarcacionDto = z.object({
+  
+  estado_actual: z.string().optional(),
+  comentario_general: z.string().optional(),
+  servicio: z.string().optional(),
+  subservicio: z.string().optional(),
+  servicio_relacionado: z.string().optional(),
   titulo_embarcacion: z.string().nonempty("El título de la embarcación es obligatorio"),
   destino_embarcacion: z.string().nonempty("El destino no puede estar vacío"),
   clientes: z.array(clientesDto).default([]),
