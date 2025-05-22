@@ -91,6 +91,8 @@ const embarcacionSchema = new mongoose.Schema({
   fecha_zarpe: { type: Date, required:false},
   fecha_servicio_relacionado: { type: Date },
   nota_servicio_relacionado: { type: String, default: '' },
+  fecha_estimada_zarpe: { type: Date },
+
 
 
 // AGREGO EL ESTADO DE LAS NAVES Y COMENTARIO DE LA MISMA 

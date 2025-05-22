@@ -17,6 +17,7 @@ export class EmbarcacionService {
         destino_embarcacion: validData.destino_embarcacion,
         fecha_arribo: validData.fecha_arribo || null, // ➡️ opcional
         fecha_zarpe: validData.fecha_zarpe || null, 
+        fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
         clientes: validData.clientes,
         is_activated: validData.is_activated,
         trabajadores: validData.trabajadores,

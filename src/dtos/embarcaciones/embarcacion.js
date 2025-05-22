@@ -127,6 +127,15 @@ const EmbarcacionDto = z.object({
     },
     z.date().optional()
   ),
+  fecha_estimada_zarpe: z.preprocess(
+  (arg) => {
+    if (arg === null || arg === undefined) return undefined;
+    if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+    return arg;
+  },
+  z.date().optional()
+),
+
   fecha_zarpe: z.preprocess(
     (arg) => {
       if (arg === null || arg === undefined) return undefined;

@@ -10,6 +10,10 @@ export const EstadoEmbarcacionDto = z.object({
   (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
   z.date().optional()
 ),
+  fecha_estimada_zarpe: z.preprocess(
+      (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
+      z.date().optional()
+    ),
  
   nota_servicio_relacionado: z.string().optional() 
 });
