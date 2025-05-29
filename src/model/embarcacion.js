@@ -112,6 +112,17 @@ const embarcacionSchema = new mongoose.Schema({
   servicio: { type: String, default: '' },
   subservicio: { type: String, default: '' },
   servicio_relacionado: { type: String, default: '' },
+  servicios_relacionados: {
+  type: [
+    {
+      nombre: { type: String, required: true },
+      fecha: { type: Date, required: true },
+      nota: { type: String, default: '' },
+      estado: { type: String, default: 'pendiente' } // ✅ aquí está el nuevo campo
+    }
+  ],
+  default: []
+},
 
 
 

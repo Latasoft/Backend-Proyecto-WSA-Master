@@ -70,16 +70,23 @@ export async function getEmbarcacionesByClienteId(req,res) {
 }
 
 
-export async function getAllEmbarcaciones(req,res){
-    try{
-        const response = await embarcacionService.getAllEmbarcaciones();
+export async function getAllEmbarcaciones(req, res) {
+  try {
+    const { page = 1, limit = 10 } = req.query;
 
-        res.status(200).json(response)
-    }catch(error){
-        res.status(error.status || 500).json({ message: error.message  });
-    }
+    const response = await embarcacionService.getAllEmbarcaciones(
+      Number(page),
+      Number(limit)
+    );
 
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
 }
+
+
+
 
 export async function updateEmbarcacion(req,res){
     try{
@@ -154,10 +161,20 @@ export const actualizarEstadoYComentario = async (req, res) => {
     const data = EstadoEmbarcacionDto.parse(req.body);
 
     const embarcacion = await Embarcacion.findByIdAndUpdate(
-      _id,
-      data,
-      { new: true }
-    );
+  _id,
+  {
+    estado_actual: data.estado_actual,
+    comentario_general: data.comentario_general,
+    servicio: data.servicio,
+    subservicio: data.subservicio,
+    servicio_relacionado: data.servicio_relacionado,
+    fecha_servicio_relacionado: data.fecha_servicio_relacionado,
+    nota_servicio_relacionado: data.nota_servicio_relacionado,
+    fecha_estimada_zarpe: data.fecha_estimada_zarpe,
+    servicios_relacionados: data.servicios_relacionados || []
+  },
+  { new: true }
+);
 
     if (!embarcacion) {
       return res.status(404).json({ message: 'Embarcación no encontrada' });

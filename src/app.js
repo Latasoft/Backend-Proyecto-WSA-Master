@@ -10,6 +10,7 @@ import mensajeRoutes from './routes/mensaje.js'
 import reporteRoutes from './routes/reporte.js'
 import solicitudReporteRoutes from './routes/solicitudReporte.js'
 import registroSolicitudRoutes from './routes/registroDescargaReporte.js'
+import estructuraServicioRoutes from './routes/estructura-servicio.js'
 const app = express();
 
 app.use(corsMiddleware)
@@ -26,4 +27,5 @@ app.use('/api/mensajes',mensajeRoutes)
 app.use('/api/reportes',reporteRoutes)
 app.use('/api/solicitud-reportes',solicitudReporteRoutes)
 app.use('/api/registro-descargas-reportes',registroSolicitudRoutes)
+app.use('/api/estructura-servicios', estructuraServicioRoutes)
 export default app; 
