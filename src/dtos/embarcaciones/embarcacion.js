@@ -107,6 +107,7 @@ const ServicioDto = z.object({
 // DTO para la Embarcación
 const EmbarcacionDto = z.object({
   
+  da_numero: z.string().nonempty("El número DA es obligatorio"),
   estado_actual: z.string().optional(),
   comentario_general: z.string().optional(),
   servicio: z.string().optional(),

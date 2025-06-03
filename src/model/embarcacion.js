@@ -86,6 +86,12 @@ const servicioSchema = new mongoose.Schema({
 const embarcacionSchema = new mongoose.Schema({
   titulo_embarcacion: { type: String, required: true },
   destino_embarcacion: { type: String, required: true },
+  da_numero: {
+  type: String,
+  required: true,
+  unique: true
+},
+
   fecha_creacion: { type: Date, default: Date.now }, 
   fecha_arribo: { type: Date, required:false},
   fecha_zarpe: { type: Date, required:false},

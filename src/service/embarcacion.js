@@ -7,31 +7,47 @@ import {
 
 export class EmbarcacionService {
   async crearEmbarcacion(data) {
-    try {
-      // Validamos y parseamos la data usando el DTO
-      const validData = EmbarcacionDto.parse(data);
+  try {
+    const validData = EmbarcacionDto.parse(data);
 
-      console.log(validData)
-      const embarcacion = await Embarcacion.create({
-        titulo_embarcacion: validData.titulo_embarcacion,
-        destino_embarcacion: validData.destino_embarcacion,
-        fecha_arribo: validData.fecha_arribo || null, // ➡️ opcional
-        fecha_zarpe: validData.fecha_zarpe || null, 
-        fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
-        clientes: validData.clientes,
-        is_activated: validData.is_activated,
-        trabajadores: validData.trabajadores,
-        permisos_embarcacion: validData.permisos_embarcacion,
-        // Se incluye la nueva propiedad para los servicios
-        servicios: validData.servicios
-        // Nota: Si tienes otros campos como ubicaciones, agrégalos aquí.
-      });
-
-      throw {status:201, message: 'Embarcacion creada exitosamente' };
-    } catch (error) {
-      
+    // Validar si ya existe DA duplicado
+    const yaExiste = await Embarcacion.findOne({ da_numero: validData.da_numero });
+    if (yaExiste) {
+      throw { status: 400, message: 'El número DA ya está registrado' };
     }
+
+    const embarcacion = await Embarcacion.create({
+      titulo_embarcacion: validData.titulo_embarcacion,
+      destino_embarcacion: validData.destino_embarcacion,
+      fecha_arribo: validData.fecha_arribo || null,
+      fecha_zarpe: validData.fecha_zarpe || null,
+      fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
+      clientes: validData.clientes,
+      is_activated: validData.is_activated,
+      trabajadores: validData.trabajadores,
+      permisos_embarcacion: validData.permisos_embarcacion,
+      servicios: validData.servicios,
+      da_numero: validData.da_numero  // ✅ asegúrate que esté definido en el schema y DTO
+    });
+
+    return {
+      message: 'Embarcación creada exitosamente',
+      data: embarcacion
+    };
+  } catch (error) {
+
+    if (error.code === 11000 && error.keyPattern?.da_numero){
+      throw { status: 400 , message: 'El número DA ya existe. debe ser único.'};
+    }
+
+    console.error('❌ Error al crear embarcación:', error);
+    throw {
+      status: error.status || 500,
+      message: error.message || 'Error interno al crear embarcación '
+    };
   }
+}
+
 
   async  actualizarServicioAccion(_id,  nombre_servicio, nombre_estado,acciones) {
      
