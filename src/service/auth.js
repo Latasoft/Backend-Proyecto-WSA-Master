@@ -24,7 +24,12 @@ export class AuthService {
         }
 
         // Generación del token JWT
-        const token = generateToken({ _id: user._id, role: user.tipo_usuario });
+        const token = generateToken({
+          _id: user._id,
+          role: user.tipo_usuario,
+          puede_crear_nave: user.puede_crear_nave
+        });
+
 
         return { message: 'Sesión iniciada con éxito', token };
     }

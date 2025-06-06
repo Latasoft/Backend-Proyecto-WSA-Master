@@ -161,7 +161,6 @@ export const actualizarEstadoYComentario = async (req, res) => {
     const data = EstadoEmbarcacionDto.parse(req.body);
     console.log('📦 Data recibida en backend:', JSON.stringify(data, null, 2));
 
-
     // ✅ Construir campos a actualizar
     const updateFields = {
       estado_actual: data.estado_actual,
@@ -172,17 +171,21 @@ export const actualizarEstadoYComentario = async (req, res) => {
       fecha_servicio_relacionado: data.fecha_servicio_relacionado,
       nota_servicio_relacionado: data.nota_servicio_relacionado,
       fecha_estimada_zarpe: data.fecha_estimada_zarpe,
+
+      // 🔵 Añadir los nuevos campos para ETA, ETB, ETD
+      fecha_arribo: data.eta,
+      fecha_estimada_zarpe: data.etb, // puedes cambiar esto si ya usas fecha_estimada_zarpe arriba
+      fecha_zarpe: data.etd
     };
 
     // ✅ Solo actualizar si viene en el body
     if (Array.isArray(data.servicios_relacionados)) {
-        console.log('✅ Servicios relacionados incluidos en updateFields');
-        updateFields.servicios_relacionados = data.servicios_relacionados;
+      console.log('✅ Servicios relacionados incluidos en updateFields');
+      updateFields.servicios_relacionados = data.servicios_relacionados;
     }
+
     console.log('🔧 Campos que se van a guardar (updateFields):', JSON.stringify(updateFields, null, 2));
 
-
-    // ✅ Ejecutar actualización
     const embarcacion = await Embarcacion.findByIdAndUpdate(
       _id,
       updateFields,
@@ -199,4 +202,5 @@ export const actualizarEstadoYComentario = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 

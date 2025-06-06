@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
   // Verificar la conexión con el servicio de correo
 transporter.verify((error, success) => {
     if (error) {
-      console.error('Error al configurar Nodemailer:', error);
+      //console.error('Error al configurar Nodemailer:', error);
     } else {
       console.log('Nodemailer configurado correctamente');
     }

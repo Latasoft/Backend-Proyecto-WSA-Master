@@ -9,6 +9,7 @@ export const generateToken = (user) => {
   const payload = {
     _id: user._id,
     role: user.role,
+    puede_crear_nave: user.puede_crear_nave,
     iat: Math.floor(Date.now() / 1000), // Fecha actual en UTC (segundos desde UNIX epoch)
   };
   

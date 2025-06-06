@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 const rolEnum=['ADMINISTRADOR','CLIENTE','TRABAJADOR']
 
 const userSchema= new mongoose.Schema({
+
+    
     username:{
         type:String,
         required:true,
@@ -25,6 +27,10 @@ const userSchema= new mongoose.Schema({
     fcmTokens: {
         type: [String],
         default: []
+    },
+    puede_crear_nave: {
+        type: Boolean,
+        default: false
     }
 })
 

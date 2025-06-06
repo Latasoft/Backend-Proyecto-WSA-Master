@@ -1,4 +1,5 @@
 import express from 'express';
+import { actualizarCampo } from '../controller/user.js';
 import {
     createUser,
     updateUser,
@@ -20,6 +21,7 @@ router.get('/trabajadores',getAllEmployes)
 router.get('/:_id',findUserById)
 router.put('/:_id',updateUser)
 router.delete('/:_id',authMiddleware,verifyRoles('ADMINISTRADOR'),deleteUserById)
+router.put('/permiso-crear-nave/:_id', actualizarCampo);
 
 export default router;
 

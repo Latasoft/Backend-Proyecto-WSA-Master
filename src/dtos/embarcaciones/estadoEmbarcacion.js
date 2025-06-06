@@ -29,7 +29,20 @@ export const EstadoEmbarcacionDto = z.object({
     nota: z.string().optional(),
     estado: z.string().optional()
   })
-).optional()
+).optional(),
+  eta: z.preprocess(
+  (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
+  z.date().optional()
+  ),
+  etb: z.preprocess(
+    (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
+    z.date().optional()
+  ),
+  etd: z.preprocess(
+    (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
+    z.date().optional()
+  )
+
 
 
 });

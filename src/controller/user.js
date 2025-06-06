@@ -1,5 +1,29 @@
 import {  UserService } from "../service/user.js";
+import { User } from "../model/user.js";
 const userService= new UserService();
+
+
+export const actualizarCampo = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const updates = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(_id, updates, { new: true });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json({
+      message: 'Usuario actualizado correctamente',
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error('❌ Error al actualizar usuario:', err);
+    res.status(500).json({ message: 'Error al actualizar usuario', error: err.message });
+  }
+};
+
 export async function createUser(req,res){
     try{
         const response= await userService.createUser(req.body)
@@ -99,4 +123,6 @@ export async function saveFcmTokenController(req, res) {
     }catch(error){
         res.status(error.status || 500).json({ message: error.message  });
     }
+
+    
 }
