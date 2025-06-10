@@ -125,7 +125,8 @@ const embarcacionSchema = new mongoose.Schema({
       nombre: { type: String, required: true },
       fecha: { type: Date, required: true },
       nota: { type: String, default: '' },
-      estado: { type: String, default: 'pendiente' } // ✅ aquí está el nuevo campo
+      estado: { type: String, default: 'pendiente' },
+      fecha_modificacion: { type: Date, default: Date.now} 
     }
   ],
   default: []

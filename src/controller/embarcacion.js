@@ -157,48 +157,46 @@ export const actualizarEstadoYComentario = async (req, res) => {
   const { _id } = req.params;
 
   try {
-    // ✅ Validar y parsear datos de entrada
+    // ✅ Validar el body con campos opcionales
+    console.log('🛬 BODY RECIBIDO EN BACKEND:', JSON.stringify(req.body, null, 2));
+
     const data = EstadoEmbarcacionDto.parse(req.body);
-    console.log('📦 Data recibida en backend:', JSON.stringify(data, null, 2));
 
-    // ✅ Construir campos a actualizar
-    const updateFields = {
-      estado_actual: data.estado_actual,
-      comentario_general: data.comentario_general,
-      servicio: data.servicio,
-      subservicio: data.subservicio,
-      servicio_relacionado: data.servicio_relacionado,
-      fecha_servicio_relacionado: data.fecha_servicio_relacionado,
-      nota_servicio_relacionado: data.nota_servicio_relacionado,
-      fecha_estimada_zarpe: data.fecha_estimada_zarpe,
+    // 📦 Mostrar datos recibidos
+    console.log('📦 Data recibida:', JSON.stringify(data, null, 2));
 
-      // 🔵 Añadir los nuevos campos para ETA, ETB, ETD
-      fecha_arribo: data.eta,
-      fecha_estimada_zarpe: data.etb, // puedes cambiar esto si ya usas fecha_estimada_zarpe arriba
-      fecha_zarpe: data.etd
-    };
+    // ✅ Construir updateFields dinámicamente con solo los campos definidos
+    const updateFields = {};
+    for (const key in data) {
+            if (data[key] !== undefined) {
+                
+                if (key === 'servicios_relacionados' && Array.isArray(data[key])) {
+                updateFields[key] = data[key].map(servicio => ({
+                    ...servicio,
+                    fecha_modificacion: new Date() // 💡 hora actual
+                }));
+                } else {
+                updateFields[key] = data[key];
+                }
+            }
+            }
 
-    // ✅ Solo actualizar si viene en el body
-    if (Array.isArray(data.servicios_relacionados)) {
-      console.log('✅ Servicios relacionados incluidos en updateFields');
-      updateFields.servicios_relacionados = data.servicios_relacionados;
-    }
 
-    console.log('🔧 Campos que se van a guardar (updateFields):', JSON.stringify(updateFields, null, 2));
+    console.log('🔧 Campos a actualizar:', JSON.stringify(updateFields, null, 2));
 
-    const embarcacion = await Embarcacion.findByIdAndUpdate(
-      _id,
-      updateFields,
-      { new: true }
-    );
+    // 🛠️ Actualizar la embarcación en MongoDB
+    const embarcacion = await Embarcacion.findByIdAndUpdate(_id, updateFields, { new: true });
 
+    // ❌ Si no se encuentra la embarcación
     if (!embarcacion) {
       return res.status(404).json({ message: 'Embarcación no encontrada' });
     }
 
+    // ✅ Respuesta exitosa
     res.json(embarcacion);
+
   } catch (error) {
-    console.error('Error al actualizar estado/comentario:', error);
+    console.error('❌ Error al actualizar estado/comentario:', error);
     res.status(500).json({ message: error.message });
   }
 };
