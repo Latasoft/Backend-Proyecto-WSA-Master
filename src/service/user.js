@@ -17,7 +17,8 @@ export class UserService{
             username: userDataParsed.username,
             password: hashedPassword,
             tipo_usuario: userDataParsed.tipo_usuario,
-            email:userDataParsed.email
+            email:userDataParsed.email,
+            empresa_cliente: data.empresa_cliente || ''
           });
       
           // 2. Si es CLIENTE, crear el Client
@@ -33,10 +34,11 @@ export class UserService{
                 foto_cliente: foto_cliente || "",
               });
             } catch (errorCliente) {
-              // Si falla la creación del cliente, borramos el User recién creado
-              await User.findByIdAndDelete(newUser._id);
-              throw {status: 401,message:'Error al registrar rut cliente ya existe'}
-            }
+                console.error('❌ Error real al crear cliente:', errorCliente.message); // 👈 para ver el problema real
+                await User.findByIdAndDelete(newUser._id);
+                throw { status: 400, message: 'Error al registrar cliente. Verifica los datos ingresados.' };
+              }
+
           }
            // 4. 🔥 Enviar correo de bienvenida + link de creación de contraseña
           const token = generateResetToken(newUser._id);
@@ -84,6 +86,7 @@ export class UserService{
         existeUsuario.username = parsedUser.username || existeUsuario.username;
         existeUsuario.rol_usuario = parsedUser.tipo_usuario || existeUsuario.rol_usuario;
         existeUsuario.email = parsedUser.email || existeUsuario.email;
+        existeUsuario.empresa_cliente = parsedUser.empresa_cliente || existeUsuario.empresa_cliente;
         // Guardar los cambios
         await existeUsuario.save();
     

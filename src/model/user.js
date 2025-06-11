@@ -31,6 +31,10 @@ const userSchema= new mongoose.Schema({
     puede_crear_nave: {
         type: Boolean,
         default: false
+    },
+    empresa_cliente: {
+        type: String,
+        default:''
     }
 })
 

@@ -5,6 +5,8 @@ const UserSchema = z.object({
     password: z.string().min(8, 'Password mínimo 8 caracteres'), // Cambiado de hashed_password a password
     tipo_usuario:z.enum(ROLES,'El rol debe ser uno de los valores validos: ADMINISTRADOR,CLIENTE,TRABAJADOR'),
     email:z.string().email('El email no es válido').optional(), // Email opcional
+    empresa_cliente: z.string().optional(),
+
 })
 
 // Esquema para actualizar el usuario, donde la contraseña es opcional
@@ -22,7 +24,8 @@ const UpdateUserSchema = z.object({
   ),
   // Puedes validar el rol con enum o dejarlo opcional
   tipo_usuario: z.enum(ROLES).optional(),
-  email:z.string().email('El email no es válido').optional() // Email opcional
+  email:z.string().email('El email no es válido').optional(), // Email opcional
+  empresa_cliente: z.string().optional(),
 });
 
 export { UserSchema, UpdateUserSchema };
