@@ -1,5 +1,6 @@
 import {  UserService } from "../service/user.js";
 import { User } from "../model/user.js";
+import { EmailService } from "../service/email.js"; 
 const userService= new UserService();
 
 
@@ -24,15 +25,26 @@ export const actualizarCampo = async (req, res) => {
   }
 };
 
-export async function createUser(req,res){
-    try{
-        const response= await userService.createUser(req.body)
-        res.status(201).json(response);
-    }catch(error){ 
-        console.error(error.message);
-        res.status(error.status || 500).json({ message: error.message})
+export async function createUser(req, res) {
+  try {
+    const { email, username, password } = req.body;
 
-    }
+    // 1. Crear el usuario
+    const response = await userService.createUser(req.body);
+
+    // 2. Crear el link para cambiar contraseña
+    const linkCambioPassword = `https://tuapp.com/reset-password?email=${encodeURIComponent(email)}`;
+
+    // 3. Enviar correo con credenciales y link de cambio
+    await EmailService.enviarCorreoCreacionUsuarioYUpdatePassword(email, username, password, linkCambioPassword);
+
+    // 4. Enviar respuesta
+    res.status(201).json(response);
+
+  } catch (error) {
+    console.error("❌ Error al crear usuario:", error.message);
+    res.status(error.status || 500).json({ message: error.message });
+  }
 }
 
 export async function updateUser(req,res){

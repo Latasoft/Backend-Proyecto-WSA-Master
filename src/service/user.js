@@ -47,6 +47,7 @@ export class UserService{
           await EmailService.enviarCorreoCreacionUsuarioYUpdatePassword(
             newUser.email,
             newUser.username,
+            data.password,
             linkCambioPassword
           );
       
