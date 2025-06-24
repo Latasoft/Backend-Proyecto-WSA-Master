@@ -5,25 +5,22 @@ const accionSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true },
     fecha: { type: Date, required: true },
-    comentario:{type:String,required:false},
-    incidente:{type:Boolean,required:false},
+    comentario: { type: String, required: false },
+    incidente: { type: Boolean, required: false },
     servicio_relacionado: { type: String, default: '' }
-
-
   },
   { _id: false }
 );
 
-// Subesquema para cada estado (por ejemplo, "puerto", "hotel", etc.)
+// Subesquema para cada estado
 const estadoSchema = new mongoose.Schema(
   {
     nombre_estado: {
       type: String,
       required: true,
-      // Si los estados son fijos, puedes limitar los valores permitidos:
       enum: [
         "Provisions and Bonds",
-        "Technical Assitance and Products", 
+        "Technical Assitance and Products",
         "WorkShop Coordination",
         "Diving Service Coordination",
         "Marine Surveyor Arrangement",
@@ -56,11 +53,9 @@ const estadoSchema = new mongoose.Schema(
         "Transportation",
         "Cash to Master",
         "Ok to Board Issuance",
-        "Working Permit" // ← Agregado solo si es válido
+        "Working Permit"
       ]
-        
     },
-    // Cada estado puede tener varias acciones (eventos) en su línea de tiempo
     acciones: {
       type: [accionSchema],
       default: []
@@ -69,13 +64,12 @@ const estadoSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// Subesquema para el servicio, que incluye el nombre del servicio y sus estados
+// Subesquema para el servicio
 const servicioSchema = new mongoose.Schema({
   nombre_servicio: {
     type: String,
     required: true
   },
-  // La línea de tiempo con los estados y sus acciones
   estados: {
     type: [estadoSchema],
     default: []
@@ -86,57 +80,40 @@ const servicioSchema = new mongoose.Schema({
 const embarcacionSchema = new mongoose.Schema({
   titulo_embarcacion: { type: String, required: true },
   destino_embarcacion: { type: String, required: true },
-  da_numero: {
-  type: String,
-  required: true,
-  unique: true
-},
+  da_numero: { type: String, required: true, unique: true },
 
-  fecha_creacion: { type: Date, default: Date.now }, 
-  fecha_arribo: { type: Date, required:false},
-  fecha_zarpe: { type: Date, required:false},
-  fecha_servicio_relacionado: { type: Date },
-  nota_servicio_relacionado: { type: String, default: '' },
+  fecha_creacion: { type: Date, default: Date.now },
+  fecha_arribo: { type: Date },
+  fecha_zarpe: { type: Date },
   fecha_estimada_zarpe: { type: Date },
-  eta: { type: String, default: '' },
-  etb: { type: String, default: '' },
-  etd: { type: String, default: '' },
-  
-// AGREGO EL ESTADO DE LAS NAVES Y COMENTARIO DE LA MISMA 
+
+  // ✅ Cambio aquí: guardar como string para evitar desfase
+  fecha_servicio_relacionado: { type: String },
+  nota_servicio_relacionado: { type: String, default: '' },
 
   estado_actual: {
     type: String,
     enum: ['aprobado', 'observaciones', 'en_proceso'],
     default: 'en_proceso'
   },
-  comentario_general: {
-    type: String,
-    default: ''
+  comentario_general: { type: String, default: '' },
 
-
-
-  },
   servicio: { type: String, default: '' },
   subservicio: { type: String, default: '' },
-  servicio_relacionado: { type: String, default: '' },
+
+  // ✅ Cambio aquí: guardar la fecha de cada servicio como string
   servicios_relacionados: {
-  type: [
-    {
-      nombre: { type: String, required: true },
-      fecha: { type: Date, required: true },
-      nota: { type: String, default: '' },
-      estado: { type: String, default: 'pendiente' },
-      fecha_modificacion: { type: Date, default: Date.now} 
-    }
-  ],
-  default: []
-},
-
-
-
-//BLOQUE SUPERIOR ES EL CAMBIO DE LAS NAVES 
-
-
+    type: [
+      {
+        nombre: { type: String, required: true },
+        fecha: { type: String, required: true }, // ← ✅ Cambio clave
+        nota: { type: String, default: '' },
+        estado: { type: String, default: 'pendiente' },
+        fecha_modificacion: { type: Date, default: Date.now }
+      }
+    ],
+    default: []
+  },
 
   clientes: [
     {
@@ -157,14 +134,14 @@ const embarcacionSchema = new mongoose.Schema({
       }
     }
   ],
-  // Array de servicios
+
   servicios: {
     type: [servicioSchema],
     default: []
   }
 });
 
-// Si planeas hacer consultas geoespaciales, crea un índice
+// Índice geoespacial si usas ubicación
 embarcacionSchema.index({ "ubicacion_embarcacion.coordinates": "2dsphere" });
 
 export const Embarcacion = mongoose.model("embarcaciones", embarcacionSchema);

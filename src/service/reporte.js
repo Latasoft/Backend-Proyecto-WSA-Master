@@ -99,6 +99,10 @@ export class ReporteService {
           <p style="text-align: center;">
             <strong>Rango de fechas:</strong> ${desdeStr} - ${hastaStr}
           </p>
+          <p style="text-align: center;">
+            <strong>Cantidad total de naves:</strong> ${embarcaciones.length}
+          </p>
+
 
           <table>
             <thead>

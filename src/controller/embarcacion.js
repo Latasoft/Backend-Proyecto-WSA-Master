@@ -157,42 +157,46 @@ export const actualizarEstadoYComentario = async (req, res) => {
   const { _id } = req.params;
 
   try {
-    // ✅ Validar el body con campos opcionales
     console.log('🛬 BODY RECIBIDO EN BACKEND:', JSON.stringify(req.body, null, 2));
 
     const data = EstadoEmbarcacionDto.parse(req.body);
 
-    // 📦 Mostrar datos recibidos
     console.log('📦 Data recibida:', JSON.stringify(data, null, 2));
 
-    // ✅ Construir updateFields dinámicamente con solo los campos definidos
+    // ✅ Solo mantener esta declaración
     const updateFields = {};
-    for (const key in data) {
-            if (data[key] !== undefined) {
-                
-                if (key === 'servicios_relacionados' && Array.isArray(data[key])) {
-                updateFields[key] = data[key].map(servicio => ({
-                    ...servicio,
-                    fecha_modificacion: new Date() // 💡 hora actual
-                }));
-                } else {
-                updateFields[key] = data[key];
-                }
-            }
-            }
+      for (const key in data) {
+        const value = data[key];
+
+        // Saltar si el valor es undefined o null
+        if (value === undefined || value === null) continue;
+
+        if (key === 'servicios_relacionados' && Array.isArray(value)) {
+          updateFields[key] = value.map(servicio => ({
+            ...servicio,
+            ...(servicio.fecha ? { fecha: servicio.fecha } : {}),
+            fecha_modificacion: new Date()
+          }));
+        } else if (key === 'eta') {
+          updateFields['fecha_arribo'] = value;
+        } else if (key === 'etb') {
+          updateFields['fecha_estimada_zarpe'] = value;
+        } else if (key === 'etd') {
+          updateFields['fecha_zarpe'] = value;
+        } else {
+          updateFields[key] = value;
+        }
+      }
 
 
     console.log('🔧 Campos a actualizar:', JSON.stringify(updateFields, null, 2));
 
-    // 🛠️ Actualizar la embarcación en MongoDB
     const embarcacion = await Embarcacion.findByIdAndUpdate(_id, updateFields, { new: true });
 
-    // ❌ Si no se encuentra la embarcación
     if (!embarcacion) {
       return res.status(404).json({ message: 'Embarcación no encontrada' });
     }
 
-    // ✅ Respuesta exitosa
     res.json(embarcacion);
 
   } catch (error) {
@@ -200,5 +204,6 @@ export const actualizarEstadoYComentario = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 

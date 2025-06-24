@@ -1,5 +1,5 @@
 import {z} from 'zod'
-const ROLES=['ADMINISTRADOR','TRABAJADOR','CLIENTE']
+const ROLES=['ADMINISTRADOR','TRABAJADOR','CLIENTE','ASISTENTE','ADMINISTRATIVO']
 const UserSchema = z.object({
     username:z.string().min(5,'el nombre de usuario debe ser de minimo 5 caracteres'),
     password: z.string().min(8, 'Password mínimo 8 caracteres'), // Cambiado de hashed_password a password

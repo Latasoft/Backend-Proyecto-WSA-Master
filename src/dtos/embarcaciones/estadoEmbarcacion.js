@@ -15,36 +15,43 @@ export const EstadoEmbarcacionDto = z.object({
   ),
 
   fecha_estimada_zarpe: z.preprocess(
-    (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
-    z.date().optional()
+  (arg) => {
+    if (arg === null || arg === undefined || arg === '') return null;
+    return typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg;
+  },
+  z.date().nullable().optional()
   ),
+
+  fecha_arribo: z.preprocess(
+    (arg) => {
+      if (arg === null || arg === undefined || arg === '') return null;
+      return typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg;
+    },
+    z.date().nullable().optional()
+  ),
+
+  fecha_zarpe: z.preprocess(
+    (arg) => {
+      if (arg === null || arg === undefined || arg === '') return null;
+      return typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg;
+    },
+    z.date().nullable().optional()
+  ),
+
 
   servicios_relacionados: z.array(
-    z.object({
-      nombre: z.string(),
-      fecha: z.preprocess(
-        (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
-        z.date().optional()
-      ),
-      nota: z.string().optional(),
-      estado: z.string().optional(),
-      fecha_modificacion: z.preprocess(
-        (arg) => (typeof arg ==='string' || arg instanceof Date ? new Date(arg) : arg),
-        z.date().optional()
-      )
-    })
-  ).optional(),
+  z.object({
+    nombre: z.string(),
+    fecha: z.string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "La fecha debe ser YYYY-MM-DD" })
+      .optional(),
+    nota: z.string().optional(),
+    estado: z.string().optional(),
+    fecha_modificacion: z.preprocess(
+      (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
+      z.date().optional()
+    )
+  })
+).optional()
 
-  eta: z.preprocess(
-    (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
-    z.date().optional()
-  ),
-  etb: z.preprocess(
-    (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
-    z.date().optional()
-  ),
-  etd: z.preprocess(
-    (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
-    z.date().optional()
-  )
 });
