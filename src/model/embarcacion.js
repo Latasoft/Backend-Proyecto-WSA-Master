@@ -103,17 +103,20 @@ const embarcacionSchema = new mongoose.Schema({
 
   // ✅ Cambio aquí: guardar la fecha de cada servicio como string
   servicios_relacionados: {
-    type: [
-      {
-        nombre: { type: String, required: true },
-        fecha: { type: String, required: true }, // ← ✅ Cambio clave
-        nota: { type: String, default: '' },
-        estado: { type: String, default: 'pendiente' },
-        fecha_modificacion: { type: Date, default: Date.now }
-      }
-    ],
-    default: []
-  },
+  type: [
+    {
+      nombre: { type: String, required: true },
+      subservicio: { type: String, default: '' }, 
+      servicio_principal: { type: String, required: true }, 
+      fecha: { type: String, required: true },
+      nota: { type: String, default: '' },
+      estado: { type: String, default: 'pendiente' },
+      fecha_modificacion: { type: Date, default: Date.now }
+    }
+  ],
+  default: []
+},
+
 
   clientes: [
     {

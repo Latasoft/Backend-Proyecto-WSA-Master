@@ -47,6 +47,7 @@ export const EstadoEmbarcacionDto = z.object({
       .optional(),
     nota: z.string().optional(),
     estado: z.string().optional(),
+    servicio_principal: z.string().trim().min(1, 'Debe tener al menos 1 carácter').optional(),
     fecha_modificacion: z.preprocess(
       (arg) => (typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg),
       z.date().optional()

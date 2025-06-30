@@ -173,10 +173,20 @@ export const actualizarEstadoYComentario = async (req, res) => {
 
         if (key === 'servicios_relacionados' && Array.isArray(value)) {
           updateFields[key] = value.map(servicio => ({
-            ...servicio,
+            nombre: servicio.nombre,
+            subservicio: servicio.subservicio || '', // ✅ Aquí agregamos el subservicio
+            nota: servicio.nota,
+            estado: servicio.estado,
+            servicio_principal: servicio.servicio_principal?.trim() ? servicio.servicio_principal : 'Otro',
             ...(servicio.fecha ? { fecha: servicio.fecha } : {}),
             fecha_modificacion: new Date()
           }));
+        
+
+
+
+
+
         } else if (key === 'eta') {
           updateFields['fecha_arribo'] = value;
         } else if (key === 'etb') {
