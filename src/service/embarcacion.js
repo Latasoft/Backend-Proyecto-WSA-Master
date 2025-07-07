@@ -1,155 +1,128 @@
 import { Embarcacion } from "../model/embarcacion.js";
 import { Client } from "../model/cliente.js";
-import { 
-  EmbarcacionDto, 
-   
-} from "../dtos/embarcaciones/embarcacion.js";
+import { EmbarcacionDto } from "../dtos/embarcaciones/embarcacion.js";
 
 export class EmbarcacionService {
   async crearEmbarcacion(data) {
-  try {
-    const validData = EmbarcacionDto.parse(data);
+    try {
+      const validData = EmbarcacionDto.parse(data);
 
-    // Validar si ya existe DA duplicado
-    const yaExiste = await Embarcacion.findOne({ da_numero: validData.da_numero });
-    if (yaExiste) {
-      throw { status: 400, message: 'El número DA ya está registrado' };
+      // Validar si ya existe DA duplicado
+      const yaExiste = await Embarcacion.findOne({ da_numero: validData.da_numero });
+      if (yaExiste) {
+        throw { status: 400, message: 'El número DA ya está registrado' };
+      }
+
+      const embarcacion = await Embarcacion.create({
+        titulo_embarcacion: validData.titulo_embarcacion,
+        destino_embarcacion: validData.destino_embarcacion,
+        fecha_arribo: validData.fecha_arribo || null,
+        fecha_zarpe: validData.fecha_zarpe || null,
+        fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
+        clientes: validData.clientes,
+        is_activated: validData.is_activated,
+        trabajadores: validData.trabajadores,
+        permisos_embarcacion: validData.permisos_embarcacion,
+        servicios: validData.servicios,
+        da_numero: validData.da_numero
+      });
+
+      return {
+        message: 'Embarcación creada exitosamente',
+        data: embarcacion
+      };
+    } catch (error) {
+      if (error.code === 11000 && error.keyPattern?.da_numero) {
+        throw { status: 400, message: 'El número DA ya existe. Debe ser único.' };
+      }
+      console.error('❌ Error al crear embarcación:', error);
+      throw {
+        status: error.status || 500,
+        message: error.message || 'Error interno al crear embarcación'
+      };
     }
-
-    const embarcacion = await Embarcacion.create({
-      titulo_embarcacion: validData.titulo_embarcacion,
-      destino_embarcacion: validData.destino_embarcacion,
-      fecha_arribo: validData.fecha_arribo || null,
-      fecha_zarpe: validData.fecha_zarpe || null,
-      fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
-      clientes: validData.clientes,
-      is_activated: validData.is_activated,
-      trabajadores: validData.trabajadores,
-      permisos_embarcacion: validData.permisos_embarcacion,
-      servicios: validData.servicios,
-      da_numero: validData.da_numero  // ✅ asegúrate que esté definido en el schema y DTO
-    });
-
-    return {
-      message: 'Embarcación creada exitosamente',
-      data: embarcacion
-    };
-  } catch (error) {
-
-    if (error.code === 11000 && error.keyPattern?.da_numero){
-      throw { status: 400 , message: 'El número DA ya existe. debe ser único.'};
-    }
-
-    console.error('❌ Error al crear embarcación:', error);
-    throw {
-      status: error.status || 500,
-      message: error.message || 'Error interno al crear embarcación '
-    };
   }
-}
 
-
-  async  actualizarServicioAccion(_id,  nombre_servicio, nombre_estado,acciones) {
-     
-    // Buscar la embarcación por id
+  async actualizarServicioAccion(_id, nombre_servicio, nombre_estado, acciones) {
     const embarcacion = await Embarcacion.findById(_id);
     if (!embarcacion) {
       return { message: 'Embarcación no encontrada' };
     }
-  
-    
-    // Buscar el servicio dentro del documento
+
     const servicio = embarcacion.servicios.find(
       s => s.nombre_servicio.toLowerCase().trim() === nombre_servicio.toLowerCase().trim()
     );
     if (!servicio) {
       return { message: 'Servicio no encontrado' };
     }
-    
-    // Buscar el estado dentro del servicio
+
     const estado = servicio.estados.find(e => e.nombre_estado === nombre_estado);
     if (!estado) {
       return { message: 'Estado no encontrado' };
     }
-    
-    // Agregar las nuevas acciones al array de acciones del estado
-    estado.acciones=acciones;
-    
-    // Guardar la actualización en la base de datos
+
+    estado.acciones = acciones;
+
     await embarcacion.save();
-    
+
     return { message: 'Acciones agregadas al estado' };
   }
- 
+
   async actualizarEmbarcacion(_id, data) {
     try {
-      // Validar la data usando DTO
       const dataParsed = EmbarcacionDto.parse(data);
-  
-      // Buscar la embarcación existente para fusionar datos
+
       const embarcacionExistente = await Embarcacion.findById(_id);
       if (!embarcacionExistente) {
-        throw {status:404, message: "Embarcación no encontrada" };
+        throw { status: 404, message: "Embarcación no encontrada" };
       }
-  
-      // Fusionar servicios existentes con los nuevos sin eliminar los previos
+
       const serviciosActualizados = [...embarcacionExistente.servicios];
-  
+
       dataParsed.servicios.forEach((nuevoServicio) => {
         const index = serviciosActualizados.findIndex(
           (s) => s.nombre_servicio === nuevoServicio.nombre_servicio
         );
-  
+
         if (index === -1) {
-          // 🔹 Si el servicio no existe, lo agregamos
           serviciosActualizados.push(nuevoServicio);
         } else {
-          // 🔹 Si ya existe, mantenemos el servicio sin modificar
           serviciosActualizados[index] = {
             ...serviciosActualizados[index],
             estados: [...serviciosActualizados[index].estados, ...nuevoServicio.estados],
           };
         }
       });
-  
-      // Actualizar la embarcación
+
       const updatedEmbarcacion = await Embarcacion.findByIdAndUpdate(
         _id,
         {
           ...dataParsed,
-          servicios: serviciosActualizados, // Mantener servicios anteriores + nuevos
+          servicios: serviciosActualizados,
         },
-        { new: true, runValidators: true } // Aplicar validaciones
+        { new: true, runValidators: true }
       );
-  
-      return {status:201, message: "Embarcación actualizada con éxito", data: updatedEmbarcacion };
+
+      return { status: 201, message: "Embarcación actualizada con éxito", data: updatedEmbarcacion };
     } catch (error) {
       console.error("Error en actualizarEmbarcacion:", error);
       throw error;
     }
   }
-   
 
   async getEmbarcacionById(_id) {
-    // 1. Busca la embarcación en la BD
     const embarcacionDoc = await Embarcacion.findById(_id);
     if (!embarcacionDoc) {
-      throw { status: 404, message: 'Embarcacion  no encontrado' };
+      throw { status: 404, message: 'Embarcación no encontrada' };
     }
-  
-    // Conviertes a objeto para manipularlo más fácil.
+
     const embarcacion = embarcacionDoc.toObject();
-  
-    
-      // Retornamos solo esos campos
-      return {
-        message: 'Embarcacion encontrada',
-        data: embarcacion
-      };
-    
-  
+
+    return {
+      message: 'Embarcación encontrada',
+      data: embarcacion
+    };
   }
-  
 
   async getEmbarcacionesByTrabajadorId(_id, page = 1) {
     try {
@@ -163,22 +136,21 @@ export class EmbarcacionService {
         .skip(skip)
         .limit(limit)
         .populate({
-          path:'clientes.cliente_id',
-          select:'nombre_cliente -_id'
+          path: 'clientes.cliente_id',
+          select: 'nombre_cliente -_id'
         });
-        
 
-        const total = await Embarcacion.countDocuments({ 
-          'trabajadores.trabajadorId': _id,
-          is_activated: true
-        });
+      const total = await Embarcacion.countDocuments({
+        'trabajadores.trabajadorId': _id,
+        is_activated: true
+      });
 
       if (embarcaciones.length === 0) {
         return { message: 'No se encontraron embarcaciones para este trabajador' };
       }
 
-      return { 
-        message: 'Embarcacion encontrada',
+      return {
+        message: 'Embarcación encontrada',
         data: embarcaciones,
         pagination: {
           total,
@@ -186,7 +158,7 @@ export class EmbarcacionService {
           limit,
           totalPages: Math.ceil(total / limit)
         }
-       };
+      };
     } catch (error) {
       console.error('Error al buscar embarcaciones:', error);
       throw error;
@@ -197,7 +169,7 @@ export class EmbarcacionService {
     try {
       const cliente = await Client.findOne({ userId: _id });
       if (!cliente) {
-        throw {status:404, message: 'Id de cliente no existe' };
+        throw { status: 404, message: 'Id de cliente no existe' };
       }
 
       const skip = (page - 1) * limit;
@@ -209,16 +181,15 @@ export class EmbarcacionService {
           path: 'clientes.cliente_id',
           select: 'nombre_cliente apellido_cliente'
         });
-        
 
       const total = await Embarcacion.countDocuments({ 'clientes.cliente_id': cliente._id });
 
       if (embarcaciones.length === 0) {
-        throw { status:404,message: 'Embarcacion no encontrada' };
+        throw { status: 404, message: 'Embarcación no encontrada' };
       }
 
       return {
-        message: 'Embarcacion encontrada',
+        message: 'Embarcación encontrada',
         data: embarcaciones,
         pagination: {
           total,
@@ -228,7 +199,7 @@ export class EmbarcacionService {
         }
       };
     } catch (error) {
-      console.error('Error al obtener embarcacion por id de cliente:', error);
+      console.error('Error al obtener embarcación por id de cliente:', error);
       throw error;
     }
   }
@@ -241,14 +212,14 @@ export class EmbarcacionService {
         .skip(skip)
         .limit(limit)
         .populate({
-          path:'clientes.cliente_id',
-            select:'nombre_cliente -_id'
+          path: 'clientes.cliente_id',
+          select: 'nombre_cliente -_id'
         });
 
       const total = await Embarcacion.countDocuments({});
 
       if (embarcaciones.length === 0) {
-        throw {status:404, message: 'No se encontraron embarcaciones' };
+        throw { status: 404, message: 'No se encontraron embarcaciones' };
       }
 
       return {
@@ -267,46 +238,30 @@ export class EmbarcacionService {
     }
   }
 
-
   async getEmbarcacionByIdAndUsuario(embarcacionId, userId) {
-    // Primero, encuentra el cliente asociado al usuario
     const cliente = await Client.findOne({ userId: userId });
-    
-    if (!cliente) {
-      throw { status:404,message: 'Cliente no encontrado para este usuario' };
-    }
-    
-    // Luego usa la función existente pasando el ID del cliente
-    return this.getEmbarcacionByIdAndCliente(embarcacionId, cliente._id.toString());
-  }
 
-  async getEmbarcacionByIdAndUsuario(embarcacionId, userId) {
-    // Encuentra el cliente asociado al usuario
-    const cliente = await Client.findOne({ userId: userId });
-    
     if (!cliente) {
-      throw { status:404,message: 'Cliente no encontrado para este usuario' };
+      throw { status: 404, message: 'Cliente no encontrado para este usuario' };
     }
-    
+
     const clienteId = cliente._id;
-    
-    // Busca la embarcación con este cliente
+
     const embarcacionDoc = await Embarcacion.findOne({
       _id: embarcacionId,
       "clientes.cliente_id": clienteId
     }).populate("clientes.cliente_id", "nombre_cliente apellido_cliente rut_cliente foto_cliente");
-  
+
     if (!embarcacionDoc) {
-      throw {status:404, message: 'Embarcación no encontrada para este cliente' };
+      throw { status: 404, message: 'Embarcación no encontrada para este cliente' };
     }
-  
+
     const embarcacion = embarcacionDoc.toObject();
-  
-    // Buscar el cliente solicitado dentro del array
+
     const clienteData = embarcacion.clientes.find(
       (c) => c.cliente_id && c.cliente_id._id.toString() === clienteId.toString()
     )?.cliente_id;
-  
+
     return {
       message: 'Embarcación encontrada',
       data: {
@@ -328,14 +283,70 @@ export class EmbarcacionService {
       }
     };
   }
-  async deleteEmbarcacionById(_id){
+
+  async getEmbarcacionByIdAndClienteId(embarcacionId, clienteId) {
+  const embarcacionDoc = await Embarcacion.findOne({
+    _id: embarcacionId,
+    'clientes.cliente_id': clienteId
+  }).populate(
+    'clientes.cliente_id',
+    'nombre_cliente apellido_cliente rut_cliente foto_cliente'
+  );
+
+  if (!embarcacionDoc) {
+    throw { status: 404, message: 'Embarcación no encontrada para este cliente' };
+  }
+
+  const embarcacion = embarcacionDoc.toObject();
+
+  const clienteData = embarcacion.clientes.find(
+    (c) => c.cliente_id && c.cliente_id._id.toString() === clienteId.toString()
+  )?.cliente_id;
+
+  return {
+    message: 'Embarcación encontrada',
+    data: {
+      _id: embarcacion._id,
+      titulo_embarcacion: embarcacion.titulo_embarcacion,
+      destino_embarcacion: embarcacion.destino_embarcacion,
+      fecha_creacion: embarcacion.fecha_creacion,
+      servicios: embarcacion.servicios,
+      permisos_embarcacion: embarcacion.permisos_embarcacion,
+      cliente: clienteData
+        ? {
+            _id: clienteData._id,
+            nombre: clienteData.nombre_cliente,
+            apellido: clienteData.apellido_cliente,
+            rut: clienteData.rut_cliente,
+            foto: clienteData.foto_cliente
+          }
+        : null
+    }
+  };
+}
+
+  async obtenerReporteTodas() {
+    try {
+      const embarcaciones = await Embarcacion.find();
+      return { data: embarcaciones };
+    } catch (error) {
+      console.error("Error en obtenerReporteTodas:", error);
+      throw {
+        status: error.status || 500,
+        message: error.message || "Error interno al obtener el reporte de todas las embarcaciones"
+      };
+    }
+  }
+
+
+
+  async deleteEmbarcacionById(_id) {
     try {
       const embarcacion = await Embarcacion.findByIdAndDelete(_id);
       if (!embarcacion) {
         throw { status: 404, message: 'Embarcación no encontrada' };
       }
-  
-  
+
       return { message: 'Embarcación eliminada exitosamente' };
     } catch (error) {
       console.error('Error al eliminar embarcación:', error);
@@ -345,4 +356,20 @@ export class EmbarcacionService {
       };
     }
   }
+
+  // metodo para traer embarcaiones NUMERO de ellas 
+async obtenerCantidadEmbarcaciones() {
+  try {
+    const total = await Embarcacion.countDocuments({});
+    return { totalEmbarcaciones: total };
+  } catch (error) {
+    console.error("Error en obtenerCantidadEmbarcaciones:", error);
+    throw {
+      status: error.status || 500,
+      message: error.message || "Error interno al obtener la cantidad de embarcaciones"
+    };
+  }
 }
+}
+
+

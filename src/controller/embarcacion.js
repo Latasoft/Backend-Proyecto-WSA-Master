@@ -6,7 +6,19 @@ import { Embarcacion } from "../model/embarcacion.js";
 import { EstadoEmbarcacionDto } from "../dtos/embarcaciones/estadoEmbarcacion.js"; 
 
 
+
 const embarcacionService= new EmbarcacionService();
+
+// para traer embarcaiones numeor 
+export const obtenerCantidadEmbarcaciones = async (req, res) => {
+  try {
+    const response = await embarcacionService.obtenerCantidadEmbarcaciones();
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("❌ Error en obtenerCantidadEmbarcaciones:", error);
+    res.status(error.status || 500).json({ message: error.message });
+  }
+};
 
 
 export async function crearEmbarcacion(req,res){
@@ -119,21 +131,25 @@ export async function updateServiceAccion(req,res){
     
 }
 
+export async function getEmbarcacionesByIdAndClienteId(req, res) {
+  try {
+    const { embarcacionId, clienteId } = req.params;
 
-export async function getEmbarcacionesByIdAndClienteId(req,res){
-    try{
-        const { embarcacionId, userId } = req.params;
-        
+    const response = await embarcacionService.getEmbarcacionByIdAndClienteId(
+      embarcacionId,
+      clienteId
+    );
 
-        const response = await embarcacionService.getEmbarcacionByIdAndUsuario(embarcacionId,userId)
-
-        res.status(200).json(response)
-
-    }catch(error){
-        console.error("Error en getEmbarcacionesByIdAndClienteId:", error);
-        res.status(error.status || 500).json({ message: error.message  });
-    }
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error en getEmbarcacionesByIdAndClienteId:", error);
+    res.status(error.status || 500).json({
+      message: error.message || "Error interno al obtener la embarcación",
+    });
+  }
 }
+
+
 
 export async function deleteEmbarcacionById(req,res){
     try{
@@ -216,4 +232,13 @@ export const actualizarEstadoYComentario = async (req, res) => {
 };
 
 
+export async function obtenerReporteTodas(req, res) {
+  try {
+    const response = await embarcacionService.obtenerReporteTodas();
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("❌ Error en obtenerReporteTodas:", error);
+    res.status(error.status || 500).json({ message: error.message });
+  }
+}
 

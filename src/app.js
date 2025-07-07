@@ -12,6 +12,10 @@ import solicitudReporteRoutes from './routes/solicitudReporte.js'
 import registroSolicitudRoutes from './routes/registroDescargaReporte.js'
 import estructuraServicioRoutes from './routes/estructura-servicios.js'
 import empresaClienteRoutes from './routes/empresa-cliente.js';
+import reporteTodasEmbarcacionesRoutes from "./routes/reporte-todas-embarcaciones.routes.js";
+
+
+
 const app = express();
 
 app.use(corsMiddleware)
@@ -30,5 +34,6 @@ app.use('/api/solicitud-reportes',solicitudReporteRoutes)
 app.use('/api/registro-descargas-reportes',registroSolicitudRoutes)
 app.use('/api/estructura-servicios', estructuraServicioRoutes)
 app.use('/api/empresa-cliente', empresaClienteRoutes);
+app.use("/api/embarcaciones/reporte-todas-embarcaciones", reporteTodasEmbarcacionesRoutes);
 
 export default app; 
