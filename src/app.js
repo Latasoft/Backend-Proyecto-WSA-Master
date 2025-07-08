@@ -11,29 +11,30 @@ import reporteRoutes from './routes/reporte.js'
 import solicitudReporteRoutes from './routes/solicitudReporte.js'
 import registroSolicitudRoutes from './routes/registroDescargaReporte.js'
 import estructuraServicioRoutes from './routes/estructura-servicios.js'
-import empresaClienteRoutes from './routes/empresa-cliente.js';
+import empresaClienteRoutes from './routes/empresa-cliente.js'
 import reporteTodasEmbarcacionesRoutes from "./routes/reporte-todas-embarcaciones.routes.js";
-
 
 
 const app = express();
 
-app.use(corsMiddleware)
-app.use(express.json())
+app.use(corsMiddleware);
+app.use(express.json());
 
 await connectMongoDB();
 
-app.use('/api/users',userRoutes)
-app.use('/api/auth',authRoutes)
-app.use('/api/clientes',clienteRoutes)
-app.use('/api/embarcaciones',embarcacionRoutes)
-app.use('/api/grupos',grupoRoutes)
-app.use('/api/mensajes',mensajeRoutes)
-app.use('/api/reportes',reporteRoutes)
-app.use('/api/solicitud-reportes',solicitudReporteRoutes)
-app.use('/api/registro-descargas-reportes',registroSolicitudRoutes)
-app.use('/api/estructura-servicios', estructuraServicioRoutes)
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/clientes', clienteRoutes);
+app.use('/api/embarcaciones', embarcacionRoutes);
+app.use('/api/grupos', grupoRoutes);
+app.use('/api/mensajes', mensajeRoutes);
+app.use('/api/reportes', reporteRoutes);
+app.use('/api/solicitud-reportes', solicitudReporteRoutes);
+app.use('/api/registro-descargas-reportes', registroSolicitudRoutes);
+app.use('/api/estructura-servicios', estructuraServicioRoutes);
 app.use('/api/empresa-cliente', empresaClienteRoutes);
-app.use("/api/embarcaciones/reporte-todas-embarcaciones", reporteTodasEmbarcacionesRoutes);
+app.use('/api/embarcaciones/reporte-todas-embarcaciones', reporteTodasEmbarcacionesRoutes);
 
-export default app; 
+
+
+export default app;
