@@ -5,7 +5,6 @@ import { EstadoEmbarcacionDto } from "../dtos/embarcaciones/estadoEmbarcacion.js
 
 const embarcacionService = new EmbarcacionService();
 
-// ✅ para traer embarcaciones número
 export const obtenerCantidadEmbarcaciones = async (req, res) => {
   try {
     const response = await embarcacionService.obtenerCantidadEmbarcaciones();
@@ -131,7 +130,6 @@ export async function deleteEmbarcacionById(req, res) {
   }
 }
 
-/** ✅ CORREGIDO: Actualizar por da_numero **/
 export const actualizarEstadoYComentario = async (req, res) => {
   const { da_numero } = req.params;
   try {
@@ -195,6 +193,7 @@ export async function obtenerReporteTodas(req, res) {
   }
 }
 
+// ✅ AQUÍ AGREGAMOS `nota` AL OBJETO devuelto
 export const getEmbarcaciones = async (req, res) => {
   try {
     const { clienteId } = req.query;
@@ -226,7 +225,8 @@ export const getEmbarcaciones = async (req, res) => {
           date: sr.fecha_modificacion
             ? new Date(sr.fecha_modificacion).toISOString().split('T')[0]
             : "",
-          estado: sr.estado || ""
+          estado: sr.estado || "",
+          nota: sr.nota || ""     // ✅ SE AGREGA LA NOTA AQUÍ
         });
       }
 
@@ -272,3 +272,22 @@ export const getEmbarcacionesFiltradas = async (req, res) => {
     res.status(500).json({ message: "Error al obtener embarcaciones" });
   }
 };
+
+export const getEmbarcacionByDaNumero = async (req, res) => {
+  try {
+    const { da_numero } = req.params;
+
+    const embarcacion = await Embarcacion.findOne({ da_numero });
+
+    if (!embarcacion) {
+      return res.status(404).json({ message: 'Embarcación no encontrada' });
+    }
+
+    res.status(200).json(embarcacion);
+  } catch (error) {
+    console.error("❌ Error en getEmbarcacionByDaNumero:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+

@@ -13,7 +13,7 @@ import registroSolicitudRoutes from './routes/registroDescargaReporte.js'
 import estructuraServicioRoutes from './routes/estructura-servicios.js'
 import empresaClienteRoutes from './routes/empresa-cliente.js'
 import reporteTodasEmbarcacionesRoutes from "./routes/reporte-todas-embarcaciones.routes.js";
-
+import reportesCustomsRoutes from "./routes/reportesCustoms.js"; // ✅ ✅ NUEVA LÍNEA
 
 const app = express();
 
@@ -35,6 +35,7 @@ app.use('/api/estructura-servicios', estructuraServicioRoutes);
 app.use('/api/empresa-cliente', empresaClienteRoutes);
 app.use('/api/embarcaciones/reporte-todas-embarcaciones', reporteTodasEmbarcacionesRoutes);
 
-
+// ✅ ✅ NUEVA RUTA DE REPORTES CUSTOMS
+app.use('/api/reportes-customs', reportesCustomsRoutes);
 
 export default app;

@@ -2,6 +2,7 @@ import express from 'express';
 import {
     crearEmbarcacion,
     getEmbarcacionById,
+    getEmbarcacionByDaNumero,
     getEmbarcacionesByClienteId,
     getEmbarcacionesByTrabajadorId,
     getAllEmbarcaciones,
@@ -14,7 +15,6 @@ import {
     getEmbarcaciones,
     getEmbarcacionesFiltradas
 } from '../controller/embarcacion.js';
-
 
 import { verifyRoles } from '../middleware/verifyRoles.js';
 import { authMiddleware } from '../middleware/auth.js';
@@ -29,7 +29,6 @@ router.put(
     verifyRoles('ADMINISTRADOR', 'TRABAJADOR'),
     actualizarEstadoYComentario
 );
-
 
 router.put(
     '/:_id',
@@ -54,6 +53,9 @@ router.get('/filtradas', getEmbarcacionesFiltradas);
 
 // ✅ AQUÍ corregimos la ruta y la dejamos pública
 router.get('/reporte-completo', getEmbarcaciones);
+
+// ✅ NUEVA RUTA para traer por da_numero
+router.get('/da/:da_numero', getEmbarcacionByDaNumero);
 
 router.get(
     '/:embarcacionId/cliente/:clienteId',
