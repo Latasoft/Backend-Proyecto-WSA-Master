@@ -16,6 +16,11 @@ export class ClienteService {
       clienteExistente.nombre_cliente = data.nombre_cliente || clienteExistente.nombre_cliente;
       clienteExistente.pais_cliente = data.pais_cliente || clienteExistente.pais_cliente;
       clienteExistente.dato_contacto_cliente = data.dato_contacto_cliente || clienteExistente.dato_contacto_cliente;
+      
+      // Actualizar empresa_cliente_id si viene en los datos
+      if (data.empresa_cliente_id) {
+        clienteExistente.empresa_cliente_id = data.empresa_cliente_id;
+      }
 
       // 3. Si llega un nuevo archivo en `file`, eliminar la foto anterior (si existe) y subir la nueva
       if (file) {

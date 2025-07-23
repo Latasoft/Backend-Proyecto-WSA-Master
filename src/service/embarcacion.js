@@ -1,11 +1,11 @@
 import { Embarcacion } from "../model/embarcacion.js";
 import { Client } from "../model/cliente.js";
-import { EmbarcacionDto } from "../dtos/embarcaciones/embarcacion.js";
+import { EmpresaCliente } from "../model/empresa-cliente.js";
 
 export class EmbarcacionService {
   async crearEmbarcacion(data) {
     try {
-      const validData = EmbarcacionDto.parse(data);
+      const validData = data;
 
       // Validar si ya existe DA duplicado
       const yaExiste = await Embarcacion.findOne({ da_numero: validData.da_numero });
@@ -13,18 +13,31 @@ export class EmbarcacionService {
         throw { status: 400, message: 'El número DA ya está registrado' };
       }
 
+      let empresa_cliente_id = validData.empresa_cliente_id;
+      let nombre_empresa_cliente = validData.nombre_empresa_cliente;
+
+      // Si solo viene el id, buscar el nombre
+      if (empresa_cliente_id && !nombre_empresa_cliente) {
+        const empresa = await EmpresaCliente.findById(empresa_cliente_id);
+        if (empresa) {
+          nombre_empresa_cliente = empresa.nombre_empresa;
+        }
+      }
+
       const embarcacion = await Embarcacion.create({
         titulo_embarcacion: validData.titulo_embarcacion,
         destino_embarcacion: validData.destino_embarcacion,
+        pais_embarcacion: validData.pais_embarcacion,
         fecha_arribo: validData.fecha_arribo || null,
         fecha_zarpe: validData.fecha_zarpe || null,
         fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
-        clientes: validData.clientes,
         is_activated: validData.is_activated,
         trabajadores: validData.trabajadores,
         permisos_embarcacion: validData.permisos_embarcacion,
         servicios: validData.servicios,
-        da_numero: validData.da_numero
+        da_numero: validData.da_numero,
+        empresa_cliente_id: empresa_cliente_id || undefined,
+        nombre_empresa_cliente: nombre_empresa_cliente || undefined
       });
 
       return {
@@ -70,7 +83,7 @@ export class EmbarcacionService {
 
   async actualizarEmbarcacion(_id, data) {
     try {
-      const dataParsed = EmbarcacionDto.parse(data);
+      const dataParsed = data;
 
       const embarcacionExistente = await Embarcacion.findById(_id);
       if (!embarcacionExistente) {
@@ -134,11 +147,7 @@ export class EmbarcacionService {
         is_activated: true
       })
         .skip(skip)
-        .limit(limit)
-        .populate({
-          path: 'clientes.cliente_id',
-          select: 'nombre_cliente -_id'
-        });
+        .limit(limit);
 
       const total = await Embarcacion.countDocuments({
         'trabajadores.trabajadorId': _id,
@@ -174,15 +183,11 @@ export class EmbarcacionService {
 
       const skip = (page - 1) * limit;
 
-      const embarcaciones = await Embarcacion.find({ 'clientes.cliente_id': cliente._id })
+      const embarcaciones = await Embarcacion.find({ 'empresa_cliente_id': _id })
         .skip(skip)
-        .limit(limit)
-        .populate({
-          path: 'clientes.cliente_id',
-          select: 'nombre_cliente apellido_cliente'
-        });
+        .limit(limit);
 
-      const total = await Embarcacion.countDocuments({ 'clientes.cliente_id': cliente._id });
+      const total = await Embarcacion.countDocuments({ 'empresa_cliente_id': _id });
 
       if (embarcaciones.length === 0) {
         throw { status: 404, message: 'Embarcación no encontrada' };
@@ -210,11 +215,7 @@ export class EmbarcacionService {
 
       const embarcaciones = await Embarcacion.find({})
         .skip(skip)
-        .limit(limit)
-        .populate({
-          path: 'clientes.cliente_id',
-          select: 'nombre_cliente -_id'
-        });
+        .limit(limit);
 
       const total = await Embarcacion.countDocuments({});
 
@@ -249,8 +250,8 @@ export class EmbarcacionService {
 
     const embarcacionDoc = await Embarcacion.findOne({
       _id: embarcacionId,
-      "clientes.cliente_id": clienteId
-    }).populate("clientes.cliente_id", "nombre_cliente apellido_cliente rut_cliente foto_cliente");
+      empresa_cliente_id: userId
+    });
 
     if (!embarcacionDoc) {
       throw { status: 404, message: 'Embarcación no encontrada para este cliente' };
@@ -285,45 +286,42 @@ export class EmbarcacionService {
   }
 
   async getEmbarcacionByIdAndClienteId(embarcacionId, clienteId) {
-  const embarcacionDoc = await Embarcacion.findOne({
-    _id: embarcacionId,
-    'clientes.cliente_id': clienteId
-  }).populate(
-    'clientes.cliente_id',
-    'nombre_cliente apellido_cliente rut_cliente foto_cliente'
-  );
+    const embarcacionDoc = await Embarcacion.findOne({
+      _id: embarcacionId,
+      empresa_cliente_id: clienteId
+    });
 
-  if (!embarcacionDoc) {
-    throw { status: 404, message: 'Embarcación no encontrada para este cliente' };
-  }
-
-  const embarcacion = embarcacionDoc.toObject();
-
-  const clienteData = embarcacion.clientes.find(
-    (c) => c.cliente_id && c.cliente_id._id.toString() === clienteId.toString()
-  )?.cliente_id;
-
-  return {
-    message: 'Embarcación encontrada',
-    data: {
-      _id: embarcacion._id,
-      titulo_embarcacion: embarcacion.titulo_embarcacion,
-      destino_embarcacion: embarcacion.destino_embarcacion,
-      fecha_creacion: embarcacion.fecha_creacion,
-      servicios: embarcacion.servicios,
-      permisos_embarcacion: embarcacion.permisos_embarcacion,
-      cliente: clienteData
-        ? {
-            _id: clienteData._id,
-            nombre: clienteData.nombre_cliente,
-            apellido: clienteData.apellido_cliente,
-            rut: clienteData.rut_cliente,
-            foto: clienteData.foto_cliente
-          }
-        : null
+    if (!embarcacionDoc) {
+      throw { status: 404, message: 'Embarcación no encontrada para este cliente' };
     }
-  };
-}
+
+    const embarcacion = embarcacionDoc.toObject();
+
+    const clienteData = embarcacion.clientes.find(
+      (c) => c.cliente_id && c.cliente_id._id.toString() === clienteId.toString()
+    )?.cliente_id;
+
+    return {
+      message: 'Embarcación encontrada',
+      data: {
+        _id: embarcacion._id,
+        titulo_embarcacion: embarcacion.titulo_embarcacion,
+        destino_embarcacion: embarcacion.destino_embarcacion,
+        fecha_creacion: embarcacion.fecha_creacion,
+        servicios: embarcacion.servicios,
+        permisos_embarcacion: embarcacion.permisos_embarcacion,
+        cliente: clienteData
+          ? {
+              _id: clienteData._id,
+              nombre: clienteData.nombre_cliente,
+              apellido: clienteData.apellido_cliente,
+              rut: clienteData.rut_cliente,
+              foto: clienteData.foto_cliente
+            }
+          : null
+      }
+    };
+  }
 
   async obtenerReporteTodas() {
     try {
@@ -337,8 +335,6 @@ export class EmbarcacionService {
       };
     }
   }
-
-
 
   async deleteEmbarcacionById(_id) {
     try {
@@ -358,18 +354,18 @@ export class EmbarcacionService {
   }
 
   // metodo para traer embarcaiones NUMERO de ellas 
-async obtenerCantidadEmbarcaciones() {
-  try {
-    const total = await Embarcacion.countDocuments({});
-    return { totalEmbarcaciones: total };
-  } catch (error) {
-    console.error("Error en obtenerCantidadEmbarcaciones:", error);
-    throw {
-      status: error.status || 500,
-      message: error.message || "Error interno al obtener la cantidad de embarcaciones"
-    };
+  async obtenerCantidadEmbarcaciones() {
+    try {
+      const total = await Embarcacion.countDocuments({});
+      return { totalEmbarcaciones: total };
+    } catch (error) {
+      console.error("Error en obtenerCantidadEmbarcaciones:", error);
+      throw {
+        status: error.status || 500,
+        message: error.message || "Error interno al obtener la cantidad de embarcaciones"
+      };
+    }
   }
-}
 }
 
 

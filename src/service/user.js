@@ -1,4 +1,3 @@
-
 import { User } from "../model/user.js";
 import { Client } from "../model/cliente.js";
 import { UserSchema,UpdateUserSchema } from "../dtos/users/user.js";
@@ -23,7 +22,7 @@ export class UserService{
       
           // 2. Si es CLIENTE, crear el Client
           if (userDataParsed.tipo_usuario === "CLIENTE") {
-            const {  nombre_cliente, pais_cliente,dato_contacto_cliente ,foto_cliente } = data;
+            const {  nombre_cliente, pais_cliente,dato_contacto_cliente ,foto_cliente, empresa_cliente_id } = data;
       
             try {
               await Client.create({
@@ -32,6 +31,7 @@ export class UserService{
                 nombre_cliente,
                 dato_contacto_cliente,
                 foto_cliente: foto_cliente || "",
+                empresa_cliente_id: empresa_cliente_id || undefined,
               });
             } catch (errorCliente) {
                 console.error('❌ Error real al crear cliente:', errorCliente.message); // 👈 para ver el problema real

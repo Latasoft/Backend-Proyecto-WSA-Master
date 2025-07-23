@@ -2,6 +2,7 @@ import { EmbarcacionService } from "../service/embarcacion.js";
 import { EmbarcacionDto } from "../dtos/embarcaciones/embarcacion.js";
 import { Embarcacion } from "../model/embarcacion.js";
 import { EstadoEmbarcacionDto } from "../dtos/embarcaciones/estadoEmbarcacion.js";
+import mongoose from "mongoose";
 
 const embarcacionService = new EmbarcacionService();
 
@@ -17,20 +18,34 @@ export const obtenerCantidadEmbarcaciones = async (req, res) => {
 
 export async function crearEmbarcacion(req, res) {
   try {
-    const dataParse = EmbarcacionDto.parse(req.body);
+    // Loguea el body y el tipo de empresa_cliente_id
+    console.log('Body recibido:', req.body);
+    console.log('Tipo de empresa_cliente_id:', typeof req.body.empresa_cliente_id, req.body.empresa_cliente_id);
+
+    // Normaliza empresa_cliente_id para que siempre sea string
+    if (
+      req.body.empresa_cliente_id &&
+      typeof req.body.empresa_cliente_id === 'object'
+    ) {
+      if ('_id' in req.body.empresa_cliente_id && typeof req.body.empresa_cliente_id._id === 'string') {
+        req.body.empresa_cliente_id = req.body.empresa_cliente_id._id;
+      } else if (typeof req.body.empresa_cliente_id.toString === 'function') {
+        req.body.empresa_cliente_id = req.body.empresa_cliente_id.toString();
+      } else {
+        req.body.empresa_cliente_id = String(req.body.empresa_cliente_id);
+      }
+    }
+
+    console.log('✅ REQ BODY recibido:', JSON.stringify(req.body, null, 2));
+
+    let dataParse = req.body;
+
+    dataParse.empresa_cliente_id = new mongoose.Types.ObjectId(dataParse.empresa_cliente_id);
+
     const response = await embarcacionService.crearEmbarcacion(dataParse);
     res.status(200).json(response);
   } catch (error) {
-    res.status(error.status || 500).json({ message: error.message });
-  }
-}
-
-export async function getEmbarcacionById(req, res) {
-  try {
-    const { _id } = req.params;
-    const response = await embarcacionService.getEmbarcacionById(_id);
-    res.status(200).json(response);
-  } catch (error) {
+    console.error("❌ Error en crearEmbarcacion:", error);
     res.status(error.status || 500).json({ message: error.message });
   }
 }
@@ -193,7 +208,6 @@ export async function obtenerReporteTodas(req, res) {
   }
 }
 
-// ✅ AQUÍ AGREGAMOS `nota` AL OBJETO devuelto
 export const getEmbarcaciones = async (req, res) => {
   try {
     const { clienteId } = req.query;
@@ -205,16 +219,13 @@ export const getEmbarcaciones = async (req, res) => {
     }
 
     const embarcaciones = await Embarcacion.find(filtro)
-      .populate("clientes.cliente_id", "nombre_cliente pais_cliente dato_contacto_cliente foto_cliente")
       .populate("trabajadores.trabajadorId", "username")
       .lean();
 
     console.log("✅ Embarcaciones encontradas:", JSON.stringify(embarcaciones, null, 2));
 
     const resultado = embarcaciones.map(e => {
-      const cliente = e.clientes?.[0]?.cliente_id;
       const operador = e.trabajadores?.[0]?.trabajadorId?.username || "";
-
       const grouped = {};
       for (const sr of e.servicios_relacionados || []) {
         if (!grouped[sr.servicio_principal]) {
@@ -226,16 +237,15 @@ export const getEmbarcaciones = async (req, res) => {
             ? new Date(sr.fecha_modificacion).toISOString().split('T')[0]
             : "",
           estado: sr.estado || "",
-          nota: sr.nota || ""     // ✅ SE AGREGA LA NOTA AQUÍ
+          nota: sr.nota || ""
         });
       }
-
       return {
         vessel: e.titulo_embarcacion || "",
         da_numero: e.da_numero || "",
         port: e.destino_embarcacion || "",
-        country: cliente?.pais_cliente || "",
-        cliente: cliente?.nombre_cliente || "",
+        pais_embarcacion: e.pais_embarcacion || 'NO DISPONIBLE',
+        empresa: e.nombre_empresa_cliente || "",
         estado_actual: e.estado_actual || "",
         eta: e.fecha_arribo || "",
         etb: e.fecha_estimada_zarpe || "",
@@ -262,7 +272,6 @@ export const getEmbarcaciones = async (req, res) => {
 export const getEmbarcacionesFiltradas = async (req, res) => {
   try {
     const embarcaciones = await Embarcacion.find({})
-      .populate("clientes.cliente_id", "nombre_cliente pais_cliente dato_contacto_cliente foto_cliente")
       .populate("trabajadores.trabajadorId", "username")
       .lean();
 
@@ -289,5 +298,13 @@ export const getEmbarcacionByDaNumero = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
+export async function getEmbarcacionById(req, res) {
+  try {
+    const { _id } = req.params;
+    const response = await embarcacionService.getEmbarcacionById(_id);
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("❌ Error en getEmbarcacionById:", error);
+    res.status(error.status || 500).json({ message: error.message });
+  }
+}

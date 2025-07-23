@@ -7,31 +7,10 @@ export const getAllEmbarcaciones = async (req, res) => {
   try {
     const embarcaciones = await Embarcacion.find()
       .populate({
-        path: "clientes.cliente_id",
-        populate: { path: "userId" },
-      })
-      .populate({
         path: "trabajadores.trabajadorId",
       });
 
     const resultado = embarcaciones.map((e) => {
-      const clientes = e.clientes.map((c) => ({
-        _id: c.cliente_id?._id,
-        nombre_cliente: c.cliente_id?.nombre_cliente,
-        pais_cliente: c.cliente_id?.pais_cliente,
-        dato_contacto_cliente: c.cliente_id?.dato_contacto_cliente,
-        foto_cliente: c.cliente_id?.foto_cliente,
-        user: c.cliente_id?.userId
-          ? {
-              _id: c.cliente_id.userId._id,
-              username: c.cliente_id.userId.username,
-              email: c.cliente_id.userId.email,
-              tipo_usuario: c.cliente_id.userId.tipo_usuario,
-              empresa_cliente: c.cliente_id.userId.empresa_cliente,
-            }
-          : null,
-      }));
-
       const trabajadores = e.trabajadores
         .filter((t) => t.trabajadorId?.tipo_usuario === "TRABAJADOR")
         .map((t) => ({
@@ -47,6 +26,7 @@ export const getAllEmbarcaciones = async (req, res) => {
         da_numero: e.da_numero,
         titulo_embarcacion: e.titulo_embarcacion,
         destino_embarcacion: e.destino_embarcacion,
+        pais_embarcacion: e.pais_embarcacion || 'NO DISPONIBLE',
         fecha_arribo: e.fecha_arribo,
         fecha_zarpe: e.fecha_zarpe,
         fecha_creacion: e.fecha_creacion,
@@ -55,7 +35,8 @@ export const getAllEmbarcaciones = async (req, res) => {
         subservicio: e.subservicio,
         servicios_relacionados: e.servicios_relacionados,
         servicios: e.servicios,
-        clientes,
+        empresa_cliente_id: e.empresa_cliente_id,
+        nombre_empresa_cliente: e.nombre_empresa_cliente,
         trabajadores,
       };
     });
@@ -81,26 +62,24 @@ export const countEmbarcaciones = async (req, res) => {
 };
 
 /**
- * ✅ Controller - Contar embarcaciones por país
+ * ✅ Controller - Contar embarcaciones por empresa
  */
-export const reportEmbarcacionesByCountry = async (req, res) => {
+export const reportEmbarcacionesByEmpresa = async (req, res) => {
   try {
-    const embarcaciones = await Embarcacion.find().populate({
-      path: "clientes.cliente_id",
-    });
+    const embarcaciones = await Embarcacion.find();
 
     const counts = {};
     let totalVessels = 0;
 
     for (const e of embarcaciones) {
-      const pais = e.clientes?.[0]?.cliente_id?.pais_cliente || "DESCONOCIDO";
-      counts[pais] = (counts[pais] || 0) + 1;
+      const empresa = e.nombre_empresa_cliente || "DESCONOCIDO";
+      counts[empresa] = (counts[empresa] || 0) + 1;
       totalVessels += 1;
     }
 
     res.json({
       total_vessels: totalVessels,
-      by_country: counts,
+      by_empresa: counts,
     });
   } catch (error) {
     console.error(error);

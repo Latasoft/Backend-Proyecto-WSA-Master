@@ -9,6 +9,11 @@ const clientSchema= new mongoose.Schema({
         type:String,
         required:true
     },
+    empresa_cliente_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "EmpresaCliente",
+        required: false
+    },
     nombre_cliente:{
         type:String,
         required:true

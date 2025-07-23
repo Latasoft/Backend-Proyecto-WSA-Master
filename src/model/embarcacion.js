@@ -81,6 +81,7 @@ const embarcacionSchema = new mongoose.Schema({
   titulo_embarcacion: { type: String, required: true },
   destino_embarcacion: { type: String, required: true },
   da_numero: { type: String, required: true, unique: true },
+  pais_embarcacion: { type: String, required: true },
 
   fecha_creacion: { type: Date, default: Date.now },
   fecha_arribo: { type: Date },
@@ -117,16 +118,17 @@ const embarcacionSchema = new mongoose.Schema({
   default: []
 },
 
+  // Campos para empresa-cliente asociada
+  empresa_cliente_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "EmpresaCliente",
+    required: true
+  },
+  nombre_empresa_cliente: {
+    type: String,
+    required: true
+  },
 
-  clientes: [
-    {
-      cliente_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "cliente",
-        required: true
-      }
-    }
-  ],
   is_activated: { type: Boolean, default: true },
   trabajadores: [
     {

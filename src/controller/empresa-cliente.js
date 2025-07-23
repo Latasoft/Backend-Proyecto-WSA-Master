@@ -42,3 +42,17 @@ export const actualizarEmpresaCliente = async (req, res) => {
   }
 };
 
+export const obtenerEmpresaClientePorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const empresa = await EmpresaCliente.findById(id);
+    if (!empresa) {
+      return res.status(404).json({ message: 'Empresa-cliente no encontrada' });
+    }
+    res.json(empresa);
+  } catch (error) {
+    console.error('Error al obtener empresa por id:', error);
+    res.status(500).json({ message: 'Error al obtener empresa por id' });
+  }
+};
+
