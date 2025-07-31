@@ -1,6 +1,7 @@
 import express from 'express'
 import { corsMiddleware } from './config/cors.js'
 import { connectMongoDB } from './config/mongoConfig.js'
+import { User } from './model/user.js' // Importar modelo User para registrarlo
 import userRoutes from './routes/user.js'
 import authRoutes from './routes/auth.js'
 import clienteRoutes from './routes/cliente.js'
@@ -14,6 +15,7 @@ import estructuraServicioRoutes from './routes/estructura-servicios.js'
 import empresaClienteRoutes from './routes/empresa-cliente.js'
 import reporteTodasEmbarcacionesRoutes from "./routes/reporte-todas-embarcaciones.routes.js";
 import reportesCustomsRoutes from "./routes/reportesCustoms.js"; // ✅ ✅ NUEVA LÍNEA
+import historialCambiosRoutes from "./routes/historial-cambios.js";
 
 const app = express();
 
@@ -37,5 +39,8 @@ app.use('/api/embarcaciones/reporte-todas-embarcaciones', reporteTodasEmbarcacio
 
 // ✅ ✅ NUEVA RUTA DE REPORTES CUSTOMS
 app.use('/api/reportes-customs', reportesCustomsRoutes);
+
+// Ruta para historial de cambios
+app.use('/api/historial-cambios', historialCambiosRoutes);
 
 export default app;

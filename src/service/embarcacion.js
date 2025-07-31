@@ -90,22 +90,34 @@ export class EmbarcacionService {
         throw { status: 404, message: "Embarcación no encontrada" };
       }
 
+      // Validar y asegurar que servicios_relacionados tengan fecha
+      if (dataParsed.servicios_relacionados && Array.isArray(dataParsed.servicios_relacionados)) {
+        dataParsed.servicios_relacionados = dataParsed.servicios_relacionados.map(servicio => {
+          if (!servicio.fecha) {
+            servicio.fecha = new Date().toISOString().split('T')[0]; // Fecha actual en formato YYYY-MM-DD
+          }
+          return servicio;
+        });
+      }
+
       const serviciosActualizados = [...embarcacionExistente.servicios];
 
-      dataParsed.servicios.forEach((nuevoServicio) => {
-        const index = serviciosActualizados.findIndex(
-          (s) => s.nombre_servicio === nuevoServicio.nombre_servicio
-        );
+      if (dataParsed.servicios && Array.isArray(dataParsed.servicios)) {
+        dataParsed.servicios.forEach((nuevoServicio) => {
+          const index = serviciosActualizados.findIndex(
+            (s) => s.nombre_servicio === nuevoServicio.nombre_servicio
+          );
 
-        if (index === -1) {
-          serviciosActualizados.push(nuevoServicio);
-        } else {
-          serviciosActualizados[index] = {
-            ...serviciosActualizados[index],
-            estados: [...serviciosActualizados[index].estados, ...nuevoServicio.estados],
-          };
-        }
-      });
+          if (index === -1) {
+            serviciosActualizados.push(nuevoServicio);
+          } else {
+            serviciosActualizados[index] = {
+              ...serviciosActualizados[index],
+              estados: [...serviciosActualizados[index].estados, ...nuevoServicio.estados],
+            };
+          }
+        });
+      }
 
       const updatedEmbarcacion = await Embarcacion.findByIdAndUpdate(
         _id,

@@ -22,8 +22,8 @@ admin.initializeApp({
   storageBucket: `gs://${FIREBASE_STORAGE_BUCKET}`, // Bucket desde el archivo .env o config.js
 });
   
-  // Acceso al bucket de Storage
-  const bucket = admin.storage().bucket();
+// Acceso al bucket de Storage
+const bucket = admin.storage().bucket();
  
-  export { bucket, admin };
+export { bucket, admin };
   

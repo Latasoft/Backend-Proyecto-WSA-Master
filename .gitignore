@@ -1,4 +1,5 @@
 .env
 firebase-key.json
+firebase-service-account.json
 nodejsstorage-a66b8-firebase-adminsdk-hk2ni-af97ba5906.json
 node_modules
