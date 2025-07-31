@@ -1,7 +1,7 @@
 import { EmbarcacionService } from "../service/embarcacion.js";
 import { EmbarcacionDto } from "../dtos/embarcaciones/embarcacion.js";
 import { Embarcacion } from "../model/embarcacion.js";
-// import { EstadoEmbarcacionDto } from "../dtos/embarcaciones/estadoEmbarcacion.js";
+import { EstadoEmbarcacionDto } from "../dtos/embarcaciones/estadoEmbarcacion.js";
 import mongoose from "mongoose";
 
 const embarcacionService = new EmbarcacionService();
@@ -149,12 +149,12 @@ export const actualizarEstadoYComentario = async (req, res) => {
   const { da_numero } = req.params;
   try {
     console.log('🛬 BODY RECIBIDO EN BACKEND:', JSON.stringify(req.body, null, 2));
-    // const data = EstadoEmbarcacionDto.parse(req.body);
-    // console.log('📦 Data recibida:', JSON.stringify(data, null, 2));
+    const data = EstadoEmbarcacionDto.parse(req.body);
+    console.log('📦 Data recibida:', JSON.stringify(data, null, 2));
 
     const updateFields = {};
-    for (const key in req.body) {
-      const value = req.body[key];
+    for (const key in data) {
+      const value = data[key];
       if (value === undefined || value === null) continue;
 
       if (key === 'servicios_relacionados' && Array.isArray(value)) {
