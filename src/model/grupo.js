@@ -7,7 +7,7 @@ const groupSchema = new mongoose.Schema({
   },
   members: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user', // Asegúrate de tener definido el modelo 'User'
+    ref: 'User', // Asegúrate de tener definido el modelo 'User'
   }],
   status:{type:Boolean, required:true},
   createdAt: {

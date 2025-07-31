@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const clientSchema= new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user", // el nombre del modelo de User
+        ref: "User", // el nombre del modelo de User
         required: true
       },
     pais_cliente:{

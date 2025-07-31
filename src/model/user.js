@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const rolEnum=['ADMINISTRADOR','CLIENTE','TRABAJADOR','ASISTENTE','ADMINITRATIVO']
+const rolEnum=['ADMINISTRADOR','CLIENTE','TRABAJADOR','ASISTENTE','ADMINISTRATIVO']
 
 const userSchema= new mongoose.Schema({
 

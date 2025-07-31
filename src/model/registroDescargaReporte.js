@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const registroDescargaRespoSchema= new mongoose.Schema({
     id_solicitante:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user", // el nombre del modelo de User
+        ref: "User", // el nombre del modelo de User
         required: true
       },
       fecha_descarga:{

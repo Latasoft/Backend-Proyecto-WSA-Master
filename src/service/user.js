@@ -8,8 +8,27 @@ import { generateResetToken } from "../utils/jwtUtil.js";
 export class UserService{
     async createUser(data) {
         try {
-          // 1. Validar y crear User
+          // 1. Validar datos
           const userDataParsed = UserSchema.parse(data);
+          
+          // 2. Verificar si el usuario o email ya existen
+          const existingUser = await User.findOne({
+            $or: [
+              { username: userDataParsed.username },
+              { email: userDataParsed.email }
+            ]
+          });
+          
+          if (existingUser) {
+            if (existingUser.username === userDataParsed.username) {
+              throw { status: 400, message: "El nombre de usuario ya existe" };
+            }
+            if (existingUser.email === userDataParsed.email) {
+              throw { status: 400, message: "El email ya está registrado" };
+            }
+          }
+          
+          // 3. Crear User
           const hashedPassword = await hashPassword(userDataParsed.password);
       
           const newUser = await User.create({
@@ -20,7 +39,7 @@ export class UserService{
             empresa_cliente: data.empresa_cliente || ''
           });
       
-          // 2. Si es CLIENTE, crear el Client
+          // 4. Si es CLIENTE, crear el Client
           if (userDataParsed.tipo_usuario === "CLIENTE") {
             const {  nombre_cliente, pais_cliente,dato_contacto_cliente ,foto_cliente, empresa_cliente_id } = data;
       
@@ -40,25 +59,50 @@ export class UserService{
               }
 
           }
-           // 4. 🔥 Enviar correo de bienvenida + link de creación de contraseña
-          const token = generateResetToken(newUser._id);
-          const linkCambioPassword = `${FRONTEND_URL}/change-password?token=${token}`;
+           // 5. 🔥 Enviar correo de bienvenida + link de creación de contraseña (opcional)
+          try {
+            const token = generateResetToken(newUser._id);
+            const linkCambioPassword = `${FRONTEND_URL}/change-password?token=${token}`;
 
-          await EmailService.enviarCorreoCreacionUsuarioYUpdatePassword(
-            newUser.email,
-            newUser.username,
-            data.password,
-            linkCambioPassword
-          );
+            await EmailService.enviarCorreoCreacionUsuarioYUpdatePassword(
+              newUser.email,
+              newUser.username,
+              data.password,
+              linkCambioPassword
+            );
+          } catch (emailError) {
+            console.warn('⚠️ No se pudo enviar el correo de bienvenida:', emailError.message);
+            // No lanzamos error, solo registramos el warning
+          }
       
-          // 3. Si todo salió bien
+          // 6. Si todo salió bien
           return { message: "Usuario registrado correctamente" };
         } catch (error) {
-          // Errores de duplicidad o cualquier otro
-          if (error.code === 11000 && error.keyValue?.username) {
-            throw new Error("El nombre de usuario ya existe");
+          console.error('❌ Error en createUser:', error);
+          
+          // Errores de duplicidad de MongoDB
+          if (error.code === 11000) {
+            if (error.keyValue?.username) {
+              throw { status: 400, message: "El nombre de usuario ya existe" };
+            }
+            if (error.keyValue?.email) {
+              throw { status: 400, message: "El email ya está registrado" };
+            }
           }
-          throw new Error("Error al crear el usuario: " + error.message);
+          
+          // Errores de validación de Zod
+          if (error.name === 'ZodError') {
+            const firstError = error.errors[0];
+            throw { status: 400, message: firstError.message };
+          }
+          
+          // Si ya tiene status y message, lo pasamos tal como está
+          if (error.status && error.message) {
+            throw error;
+          }
+          
+          // Error genérico
+          throw { status: 500, message: "Error interno del servidor al crear usuario" };
         }
       }
       

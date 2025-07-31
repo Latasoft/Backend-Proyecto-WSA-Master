@@ -8,7 +8,7 @@ const messageSchema = new mongoose.Schema({
   },
   sender: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user', // Se asume que el usuario está definido en otro modelo
+    ref: 'User', // Se asume que el usuario está definido en otro modelo
     required: true
   },
   content: {

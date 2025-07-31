@@ -27,18 +27,10 @@ export const actualizarCampo = async (req, res) => {
 
 export async function createUser(req, res) {
   try {
-    const { email, username, password } = req.body;
-
-    // 1. Crear el usuario
+    // Crear el usuario (el servicio ya maneja el envío de correos)
     const response = await userService.createUser(req.body);
-
-    // 2. Crear el link para cambiar contraseña
-    const linkCambioPassword = `https://tuapp.com/reset-password?email=${encodeURIComponent(email)}`;
-
-    // 3. Enviar correo con credenciales y link de cambio
-    await EmailService.enviarCorreoCreacionUsuarioYUpdatePassword(email, username, password, linkCambioPassword);
-
-    // 4. Enviar respuesta
+    
+    // Enviar respuesta
     res.status(201).json(response);
 
   } catch (error) {

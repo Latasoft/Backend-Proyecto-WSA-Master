@@ -1,4 +1,5 @@
 import { Embarcacion } from "../model/embarcacion.js";
+import { User } from "../model/user.js";
 
 /**
  * ✅ Controller - Traer TODAS las embarcaciones (detalle completo)

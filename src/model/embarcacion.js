@@ -134,7 +134,7 @@ const embarcacionSchema = new mongoose.Schema({
     {
       trabajadorId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
+        ref: "User",
         required: true
       }
     }

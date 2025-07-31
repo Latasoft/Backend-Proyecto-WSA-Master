@@ -54,7 +54,8 @@ Equipo de Soporte WSA
       await EmailService.enviarCorreo(destinatario, asunto, text, html);
     } catch (error) {
       console.error('❌ Error al enviar correo:', error);
-      throw { status: 500, message: 'Error al enviar correo de bienvenida' };
+      // No lanzamos error para que no interrumpa la creación del usuario
+      // throw { status: 500, message: 'Error al enviar correo de bienvenida' };
     }
   }
 }
