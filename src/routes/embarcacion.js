@@ -66,7 +66,7 @@ router.get(
 
 router.get(
     '/:_id',
-    verifyRoles('ADMINISTRADOR', 'TRABAJADOR', 'CLIENTE'),
+    verifyRoles('ADMINISTRADOR', 'TRABAJADOR', 'CLIENTE', "ASISTENTE"),
     getEmbarcacionById
 );
 
