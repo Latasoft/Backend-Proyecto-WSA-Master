@@ -16,6 +16,7 @@ import empresaClienteRoutes from './routes/empresa-cliente.js'
 import reporteTodasEmbarcacionesRoutes from "./routes/reporte-todas-embarcaciones.routes.js";
 import reportesCustomsRoutes from "./routes/reportesCustoms.js"; // ✅ ✅ NUEVA LÍNEA
 import historialCambiosRoutes from "./routes/historial-cambios.js";
+import asistenteRoutes from "./routes/asistente.js";
 
 const app = express();
 
@@ -42,5 +43,8 @@ app.use('/api/reportes-customs', reportesCustomsRoutes);
 
 // Ruta para historial de cambios
 app.use('/api/historial-cambios', historialCambiosRoutes);
+
+// Ruta para asistentes
+app.use('/api/asistentes', asistenteRoutes);
 
 export default app;

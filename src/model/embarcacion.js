@@ -139,6 +139,15 @@ const embarcacionSchema = new mongoose.Schema({
       }
     }
   ],
+  asistentes: [
+    {
+      asistenteId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+      }
+    }
+  ],
 
   servicios: {
     type: [servicioSchema],

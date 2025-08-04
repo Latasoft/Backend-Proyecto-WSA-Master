@@ -33,6 +33,7 @@ export class EmbarcacionService {
         fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
         is_activated: validData.is_activated,
         trabajadores: validData.trabajadores,
+        asistentes: validData.asistentes,
         permisos_embarcacion: validData.permisos_embarcacion,
         servicios: validData.servicios,
         da_numero: validData.da_numero,
