@@ -73,20 +73,18 @@ export async function findUserById(req,res){
 
 export async function getAllUsersPaginated(req, res) {
     try {
-        // Obtener los parámetros de la solicitud, como `page` y `limit`
-        const { page = 1, limit = 10,role } = req.query;
+        const { page = 1, limit = 10, role = '', searchTerm = '' } = req.query;
 
-        // Llamar al método del servicio para obtener los usuarios paginados
-        const result = await userService.getAllUsersPaginated(page, limit,role);
+        // Pasar todos los parámetros a la función del servicio
+        const result = await userService.getAllUsersPaginated(page, limit, role, searchTerm);
 
-        // Devolver la respuesta con los datos de la paginación
         res.status(200).json(result);
     } catch (error) {
-        // Manejar los errores
-        console.error('Error al obtener usuarios:',error.message);
-        res.status(error.status || 500).json({ message: error.message})
+        console.error('Error al obtener usuarios:', error.message);
+        res.status(error.status || 500).json({ message: error.message });
     }
 }
+
 
 export async function getAllEmployes(req,res){
     try{
