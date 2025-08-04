@@ -2,21 +2,23 @@ import { AuthService } from "../service/auth.js";
 
 const authService= new AuthService();
 
-export async function login(req,res){
-    try{
+export async function login(req, res) {
+  try {
+    const response = await authService.login(req.body);
 
-        const response= await authService.login(req.body)
+    // Aquí construyes la respuesta agregando success: true
+    res.status(200).json({
+      success: true,
+      ...response,
+    });
+  } catch (error) {
+    const status = error?.status || 500;
+    const message = error?.message || 'Error interno del servidor';
 
-        res.status(200).json(response);
-
-    }catch(error){
-        const status = error?.status || 500;
-        const message = error?.message || 'Error interno del servidor';
-
-        res.status(status).json({ message });
-
-    }
+    res.status(status).json({ message });
+  }
 }
+
 
 
 export const resetPassword = async (req, res) => {
