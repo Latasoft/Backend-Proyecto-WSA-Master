@@ -3,9 +3,10 @@ const ROLES=['ADMINISTRADOR','TRABAJADOR','CLIENTE','ASISTENTE','ADMINISTRATIVO'
 const UserSchema = z.object({
     username:z.string().min(5,'el nombre de usuario debe ser de minimo 5 caracteres'),
     password: z.string().min(8, 'Password mínimo 8 caracteres'), // Cambiado de hashed_password a password
-    tipo_usuario:z.enum(ROLES,'El rol debe ser uno de los valores validos: ADMINISTRADOR,CLIENTE,TRABAJADOR'),
+    tipo_usuario:z.enum(ROLES,'El rol debe ser uno de los valores validos: ADMINISTRADOR,TRABAJADOR,CLIENTE,ASISTENTE,ADMINISTRATIVO'),
     email:z.string().email('El email no es válido'), // Email requerido
     empresa_cliente: z.string().optional(),
+    pais_asignado: z.string().optional(),
 
 })
 
@@ -26,6 +27,7 @@ const UpdateUserSchema = z.object({
   tipo_usuario: z.enum(ROLES).optional(),
   email:z.string().email('El email no es válido').optional(), // Email opcional
   empresa_cliente: z.string().optional(),
+  pais_asignado: z.string().optional(),
 });
 
 export { UserSchema, UpdateUserSchema };

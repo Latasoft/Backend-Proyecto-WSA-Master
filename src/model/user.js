@@ -35,6 +35,10 @@ const userSchema= new mongoose.Schema({
     empresa_cliente: {
         type: String,
         default:''
+    },
+    pais_asignado: {
+        type: String,
+        default: ''
     }
 })
 

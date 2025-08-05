@@ -1,6 +1,5 @@
 import { User } from "../model/user.js";
 import { Client } from "../model/cliente.js";
-import { UserSchema,UpdateUserSchema } from "../dtos/users/user.js";
 import { hashPassword } from "../utils/bcryptUtil.js";
 import{EmailService} from "../service/email.js"
 import { FRONTEND_URL } from "../config/config.js";
@@ -8,39 +7,56 @@ import { generateResetToken } from "../utils/jwtUtil.js";
 export class UserService{
     async createUser(data) {
         try {
-          // 1. Validar datos
-          const userDataParsed = UserSchema.parse(data);
+          console.log('📝 Datos recibidos:', { 
+            username: data.username, 
+            email: data.email, 
+            tipo_usuario: data.tipo_usuario,
+            timestamp: new Date().toISOString()
+          });
           
-          // 2. Verificar si el usuario o email ya existen
+          // 1. Verificar si el usuario o email ya existen
           const existingUser = await User.findOne({
             $or: [
-              { username: userDataParsed.username },
-              { email: userDataParsed.email }
+              { username: data.username },
+              { email: data.email }
             ]
           });
           
+          console.log('🔍 Usuario existente:', existingUser ? 'SÍ' : 'NO');
+          
+          // Verificación adicional para evitar duplicados concurrentes
           if (existingUser) {
-            if (existingUser.username === userDataParsed.username) {
+            if (existingUser.username === data.username) {
               throw { status: 400, message: "El nombre de usuario ya existe" };
             }
-            if (existingUser.email === userDataParsed.email) {
+            if (existingUser.email === data.email) {
               throw { status: 400, message: "El email ya está registrado" };
             }
           }
           
-          // 3. Crear User
-          const hashedPassword = await hashPassword(userDataParsed.password);
+          if (existingUser) {
+            if (existingUser.username === data.username) {
+              throw { status: 400, message: "El nombre de usuario ya existe" };
+            }
+            if (existingUser.email === data.email) {
+              throw { status: 400, message: "El email ya está registrado" };
+            }
+          }
+          
+          // 2. Crear User
+          const hashedPassword = await hashPassword(data.password);
       
           const newUser = await User.create({
-            username: userDataParsed.username,
+            username: data.username,
             password: hashedPassword,
-            tipo_usuario: userDataParsed.tipo_usuario,
-            email:userDataParsed.email,
-            empresa_cliente: data.empresa_cliente || ''
+            tipo_usuario: data.tipo_usuario,
+            email: data.email,
+            empresa_cliente: data.empresa_cliente || '',
+            pais_asignado: data.pais_asignado || ''
           });
       
-          // 4. Si es CLIENTE, crear el Client
-          if (userDataParsed.tipo_usuario === "CLIENTE") {
+          // 3. Si es CLIENTE, crear el Client
+          if (data.tipo_usuario === "CLIENTE") {
             const {  nombre_cliente, pais_cliente,dato_contacto_cliente ,foto_cliente, empresa_cliente_id } = data;
       
             try {
@@ -59,7 +75,8 @@ export class UserService{
               }
 
           }
-           // 5. 🔥 Enviar correo de bienvenida + link de creación de contraseña (opcional)
+           // 4. 🔥 Enviar correo de bienvenida + link de creación de contraseña (opcional) - DESACTIVADO TEMPORALMENTE
+          /*
           try {
             const token = generateResetToken(newUser._id);
             const linkCambioPassword = `${FRONTEND_URL}/change-password?token=${token}`;
@@ -74,9 +91,20 @@ export class UserService{
             console.warn('⚠️ No se pudo enviar el correo de bienvenida:', emailError.message);
             // No lanzamos error, solo registramos el warning
           }
+          */
       
-          // 6. Si todo salió bien
-          return { message: "Usuario registrado correctamente" };
+          // 5. Si todo salió bien
+          console.log('✅ Usuario creado exitosamente:', newUser._id);
+          return { 
+            message: "Usuario registrado correctamente",
+            user: {
+              id: newUser._id,
+              username: newUser.username,
+              email: newUser.email,
+              tipo_usuario: newUser.tipo_usuario,
+              pais_asignado: newUser.pais_asignado
+            }
+          };
         } catch (error) {
           console.error('❌ Error en createUser:', error);
           
@@ -90,9 +118,9 @@ export class UserService{
             }
           }
           
-          // Errores de validación de Zod
-          if (error.name === 'ZodError') {
-            const firstError = error.errors[0];
+          // Errores de validación (removido Zod)
+          if (error.name === 'ValidationError') {
+            const firstError = Object.values(error.errors)[0];
             throw { status: 400, message: firstError.message };
           }
           

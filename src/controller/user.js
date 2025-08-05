@@ -30,7 +30,7 @@ export async function createUser(req, res) {
     // Crear el usuario (el servicio ya maneja el envío de correos)
     const response = await userService.createUser(req.body);
     
-    // Enviar respuesta
+    // Si llegamos aquí, el usuario se creó exitosamente
     res.status(201).json(response);
 
   } catch (error) {

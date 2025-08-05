@@ -12,7 +12,8 @@ export const crearHistorialCambio = async (req, res) => {
             entidad_nombre,
             accion,
             campos_modificados,
-            fecha_cambio
+            fecha_cambio,
+            comentario_cambios
         } = req.body;
 
         // Verificar que el usuario existe
@@ -37,7 +38,8 @@ export const crearHistorialCambio = async (req, res) => {
             campos_modificados,
             fecha_cambio: fecha_cambio || new Date(),
             ip_usuario,
-            user_agent
+            user_agent,
+            comentario_cambios: comentario_cambios || ''
         });
 
         const historialGuardado = await nuevoHistorial.save();
@@ -130,7 +132,8 @@ export const obtenerHistorialCambios = async (req, res) => {
             accion: item.accion,
             campos_modificados: item.campos_modificados,
             fecha_cambio: item.fecha_cambio,
-            ip_usuario: item.ip_usuario
+            ip_usuario: item.ip_usuario,
+            comentario_cambios: item.comentario_cambios
         }));
 
         res.status(200).json({
@@ -160,7 +163,8 @@ export const registrarCambioAutomatico = async ({
     accion,
     campos_modificados,
     ip_usuario,
-    user_agent
+    user_agent,
+    comentario_cambios
 }) => {
     try {
         const nuevoHistorial = new HistorialCambios({
@@ -173,7 +177,8 @@ export const registrarCambioAutomatico = async ({
             campos_modificados,
             fecha_cambio: new Date(),
             ip_usuario,
-            user_agent
+            user_agent,
+            comentario_cambios: comentario_cambios || ''
         });
 
         await nuevoHistorial.save();

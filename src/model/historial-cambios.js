@@ -53,6 +53,10 @@ const historialCambiosSchema = new mongoose.Schema({
     },
     user_agent: {
         type: String
+    },
+    comentario_cambios: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true
