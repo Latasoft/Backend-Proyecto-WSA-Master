@@ -180,36 +180,48 @@ export class UserService{
         return {message:'Usuario encontrado',userResponse}
     }
 
-    async getAllUsersPaginated(page = 1, limit = 10,role) {
-        // Calcular el número de registros a omitir
-        const skip = (page - 1) * limit;
-        const query = role ? { tipo_usuario: role } : {}; // Si no hay rol, trae todos
+    async getAllUsersPaginated(page = 1, limit = 10, role, searchTerm = '') {
+      try {
+        page = Number(page);
+        limit = Number(limit);
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
 
-        
-        try {
-            // Obtener los usuarios paginados
-            const users = await User.find(query)
-                .skip(skip)       // Omitir los primeros registros (según la página)
-                .limit(limit)     // Limitar la cantidad de resultados por página
-                .exec();
-              
-        
-            // Contar el total de usuarios para saber cuántas páginas hay
-            const totalUsers = await User.countDocuments(query);
-    
-            // Retornar los usuarios y la información de la paginación
-            return {
-                message: 'Usuarios encontrados',
-                users,
-                totalUsers,
-                totalPages: Math.ceil(totalUsers / limit),
-                currentPage: page
-            };
-        } catch (error) {
-            console.error('Error al obtener usuarios:', error);
-            return { message: 'Error al obtener usuarios', error: error.message };
+        const skip = (page - 1) * limit;
+        const conditions = [];
+
+        if (role) {
+          conditions.push({ tipo_usuario: role });
         }
+
+        if (searchTerm && searchTerm.trim() !== '') {
+          conditions.push({
+            $or: [
+              { username: { $regex: searchTerm, $options: 'i' } },
+              { email: { $regex: searchTerm, $options: 'i' } },
+            ],
+          });
+        }
+
+        // Si hay condiciones, usamos $and, si no, {} para traer todo
+        const query = conditions.length > 0 ? { $and: conditions } : {};
+
+        const users = await User.find(query).skip(skip).limit(limit).exec();
+        const totalUsers = await User.countDocuments(query);
+
+        return {
+          message: 'Usuarios encontrados',
+          users,
+          totalUsers,
+          totalPages: Math.ceil(totalUsers / limit),
+          currentPage: page,
+        };
+      } catch (error) {
+        console.error('Error al obtener usuarios:', error);
+        return { message: 'Error al obtener usuarios', error: error.message };
+      }
     }
+
 
     async getUsersEmploye(page = 1, limit = 10) {
       try {
