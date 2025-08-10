@@ -6,6 +6,7 @@ const EmpresaClienteSchema = new mongoose.Schema({
   direccion: String,
   telefono: String,
   correo: String,
+  imagen_empresa: String,
 
   contacto_operativo: {
     nombre: String,
