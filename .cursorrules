@@ -1,0 +1,24 @@
+# Reglas de Cursor para Backend Proyecto WSA
+
+## Idioma
+- Responde siempre en español por defecto
+
+## Respuestas
+- Solo código, sin explicaciones (ahorro de tokens)
+- Sin comentarios narrativos en el código salvo solicitud explícita
+
+## Prioridades
+- Priorizar archivos seleccionados/abiertos
+- Evitar escaneo completo del repositorio
+- Mantener formato y estilo existentes
+
+## Estilo de código
+- CSS/SCSS con alcance local al componente
+- Una sola pregunta breve si estoy bloqueado
+
+## Contexto del proyecto
+- Backend Node.js con Express
+- MongoDB como base de datos
+- Firebase para almacenamiento
+- Nodemailer para emails
+- JWT para autenticación

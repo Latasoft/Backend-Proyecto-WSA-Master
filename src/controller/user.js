@@ -1,6 +1,8 @@
 import {  UserService } from "../service/user.js";
 import { User } from "../model/user.js";
 import { EmailService } from "../service/email.js"; 
+import { convertImageToBase64 } from '../middleware/uploadFile.js';
+import { UserSchema, UpdateUserSchema } from '../dtos/users/user.js';
 const userService= new UserService();
 
 
@@ -27,10 +29,35 @@ export const actualizarCampo = async (req, res) => {
 
 export async function createUser(req, res) {
   try {
-    // Crear el usuario (el servicio ya maneja el envío de correos)
+    // Procesar imagen si existe
+    if (req.files && req.files.length > 0) {
+      const imageFile = req.files.find(file => 
+        file.fieldname === 'imagen_usuario' || 
+        file.fieldname === 'imagen' || 
+        file.mimetype.startsWith('image/')
+      );
+      
+      if (imageFile) {
+        req.body.imagen_usuario = convertImageToBase64(imageFile);
+      }
+    } else if (req.body.imagen) {
+      req.body.imagen_usuario = req.body.imagen;
+    }
+
+    // Validar datos con Zod
+    try {
+      const validatedData = UserSchema.parse(req.body);
+      req.body = validatedData;
+    } catch (validationError) {
+      console.error('❌ Error de validación:', validationError.errors);
+      return res.status(400).json({ 
+        message: 'Datos inválidos', 
+        errors: validationError.errors.map(err => err.message)
+      });
+    }
+
     const response = await userService.createUser(req.body);
     
-    // Si llegamos aquí, el usuario se creó exitosamente
     res.status(201).json(response);
 
   } catch (error) {
@@ -40,22 +67,56 @@ export async function createUser(req, res) {
 }
 
 export async function updateUser(req,res){
-    try{
-        const { _id } = req.params;
-      const userData = req.body;
+  try{
+      const { _id } = req.params;
+      let userData = req.body;
       
+      // Obtener usuario actual para mantener imagen existente si no se envía nueva
+      const userActual = await User.findById(_id);
+      if (!userActual) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
+
+      // Procesar imagen: si se envía nueva imagen, usarla; si no, mantener la existente
+      if (req.files && req.files.length > 0) {
+        const imageFile = req.files.find(file => 
+          file.fieldname === 'imagen_usuario' || 
+          file.fieldname === 'imagen' || 
+          file.mimetype.startsWith('image/')
+        );
+        
+        if (imageFile) {
+          userData.imagen_usuario = convertImageToBase64(imageFile);
+        } else {
+          userData.imagen_usuario = userActual.imagen_usuario;
+        }
+      } else if (req.body.imagen) {
+        userData.imagen_usuario = req.body.imagen;
+      } else {
+        userData.imagen_usuario = userActual.imagen_usuario;
+      }
+
+      // Validar datos con Zod para actualización
+      try {
+        const validatedData = UpdateUserSchema.parse(userData);
+        userData = validatedData;
+      } catch (validationError) {
+        console.error('❌ Error de validación en actualización:', validationError.errors);
+        return res.status(400).json({ 
+          message: 'Datos inválidos para actualización', 
+          errors: validationError.errors.map(err => err.message)
+        });
+      }
       
       const updatedUser = await userService.updateUser(_id, userData);
       
-      res.status(201).json(
-        updatedUser 
-      );
+      res.status(200).json(updatedUser);
 
-    }
-    catch(error){
-        console.error(error.message);
-        res.status(error.status || 500).json({ message: error.message})
-    }
+  }
+  catch(error){
+      console.error('❌ Error al actualizar usuario:', error.message);
+      res.status(error.status || 500).json({ message: error.message})
+  }
 }
 
 

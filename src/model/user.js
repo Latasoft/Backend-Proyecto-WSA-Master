@@ -24,6 +24,11 @@ const userSchema= new mongoose.Schema({
         required:true,
         unique:true
     },
+    nombre_completo: {
+        type: String,
+        required: true
+    },
+    imagen_usuario: String,
     fcmTokens: {
         type: [String],
         default: []
@@ -37,6 +42,10 @@ const userSchema= new mongoose.Schema({
         default:''
     },
     pais_asignado: {
+        type: String,
+        default: ''
+    },
+    dato_contacto: {
         type: String,
         default: ''
     }

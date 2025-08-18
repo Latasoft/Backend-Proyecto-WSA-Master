@@ -4,7 +4,7 @@ import { z } from 'zod';
 const ContactoSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido'),
   cargo: z.string().min(1, 'El cargo es requerido'),
-  correo: z.string().optional(),
+  correo: z.string().email('Formato de email inválido').optional().or(z.literal('')),
   telefono: z.string().min(1, 'El teléfono es requerido')
 });
 

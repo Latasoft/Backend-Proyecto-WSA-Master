@@ -5,9 +5,6 @@ const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB máximo
-  },
   fileFilter: (req, file, cb) => {
     // Permitir solo imágenes
     if (file.mimetype.startsWith('image/')) {
@@ -33,11 +30,7 @@ export const uploadAnyImage = upload.any();
 // Middleware para manejar errores de multer
 export const handleMulterError = (error, req, res, next) => {
   if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ 
-        message: 'El archivo es demasiado grande. Máximo 5MB' 
-      });
-    } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+    if (error.code === 'LIMIT_UNEXPECTED_FILE') {
       // Ignorar errores de campos inesperados
       console.log('Campo de archivo inesperado ignorado:', error.message);
       return next();

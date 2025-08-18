@@ -41,59 +41,23 @@ const TrabajadorDto = z.object({
 // DTO para cada acción dentro de un estado
 const AccionDto = z.object({
   nombre: z.string(),
-  fecha: z.preprocess(
-    (arg) => {
-      if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
-      return arg;
-    },
-    z.date()
-  ),
+  fecha: z
+    .preprocess(
+      (arg) => {
+        if (arg === undefined || arg === null || arg === "") return undefined;
+        if (typeof arg === "string" || arg instanceof Date) return new Date(arg);
+        return arg;
+      },
+      z.date().optional()
+    )
+    .optional(),
   comentario:z.string().optional(),
   indicente:z.boolean().optional(),
 });
 
 // DTO para cada estado en la línea de tiempo  
 const EstadoDto = z.object({
-  // Si los estados son fijos, se puede usar un enum para validarlos:
-  nombre_estado: z.enum([
-    "Provisions and Bonds",
-    "Technical Assitance and Products",
-    "WorkShop Coordination",
-    "Diving Service Coordination",
-    "Marine Surveyor Arrangement",
-    "Last Mile",
-    "Sample shipping",
-    "Cargo Shipping",
-    "Landing and Return By Courier",
-    "Airfreight Coordination",
-    "Seafreight Coordination",
-    "Courier on Board Clearance",
-    "Landing and Return Spare Parts",
-    "Port Technical Services",
-    "Custom Process",
-    "Representation",
-    "Local Subpplier And Provisions to Expeditions",
-    "Hub Agent",
-    "Part Asistence",
-    "Account Supervision",
-    "Tax Recovery (Chile)",
-    "Full Port Agent",
-    "Protective Agency",
-    "Bunkering Call",
-    "Logistic Call",
-    "Panama Channel Transit",
-    "Magellan Strait Pilotage",
-    "Crew Change",
-    "Medical Assistance",
-    "Visa Authorization on Arraival",
-    "Hotel Service",
-    "Transportation",
-    "Cash to Master",
-    "Ok to Board Issuance",
-    "Working Permit" // Agregado si lo necesitas
-  ]),
-  
-  // Un estado puede tener múltiples acciones
+  nombre_estado: z.string().min(1),
   acciones: z.array(AccionDto).default([]), 
 });
 

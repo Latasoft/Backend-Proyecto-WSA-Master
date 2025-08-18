@@ -186,5 +186,58 @@ router.patch('/eliminar-servicio-relacionado-por-id', async (req, res) => {
   }
 });
 
+// GET - obtener estructura por id
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const estructura = await EstructuraServicio.findById(id);
+    if (!estructura) {
+      return res.status(404).json({ message: 'Estructura de servicio no encontrada' });
+    }
+    res.status(200).json(estructura);
+  } catch (err) {
+    console.error('❌ Error al obtener estructura por id:', err);
+    res.status(500).json({ message: 'Error al obtener estructura' });
+  }
+});
+
+// PATCH - actualizar estructura por id
+router.patch('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+
+    const actualizado = await EstructuraServicio.findByIdAndUpdate(
+      id,
+      data,
+      { new: true, runValidators: true }
+    );
+
+    if (!actualizado) {
+      return res.status(404).json({ message: 'Estructura de servicio no encontrada' });
+    }
+
+    res.status(200).json(actualizado);
+  } catch (err) {
+    console.error('❌ Error al actualizar estructura:', err);
+    res.status(500).json({ message: 'Error al actualizar estructura' });
+  }
+});
+
+// DELETE - eliminar estructura por id
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const eliminado = await EstructuraServicio.findByIdAndDelete(id);
+    if (!eliminado) {
+      return res.status(404).json({ message: 'Estructura de servicio no encontrada' });
+    }
+    res.status(200).json({ message: 'Estructura eliminada correctamente', data: eliminado });
+  } catch (err) {
+    console.error('❌ Error al eliminar estructura:', err);
+    res.status(500).json({ message: 'Error al eliminar estructura' });
+  }
+});
+
 
 export default router;

@@ -8,18 +8,19 @@ import {
     getAllEmployes,
     saveFcmTokenController,
     deleteUserById
-} from '../controller/user.js'; // Importa los controladores
-
+} from '../controller/user.js';
+import { uploadAnyImage, handleMulterError } from '../middleware/uploadFile.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { verifyRoles } from '../middleware/verifyRoles.js';
 const router = express.Router();
 
-router.post('/', authMiddleware, verifyRoles('ADMINISTRADOR'),createUser)
+router.post('/', authMiddleware, verifyRoles('ADMINISTRADOR'), uploadAnyImage, handleMulterError, createUser)
 router.post('/fcm-token', authMiddleware, saveFcmTokenController);
 router.get('/',getAllUsersPaginated)
 router.get('/trabajadores',getAllEmployes)
 router.get('/:_id',findUserById)
-router.put('/:_id',updateUser)
+router.put('/:_id', uploadAnyImage, handleMulterError, updateUser)
+router.patch('/:_id', actualizarCampo);
 router.delete('/:_id',authMiddleware,verifyRoles('ADMINISTRADOR'),deleteUserById)
 router.put('/permiso-crear-nave/:_id', actualizarCampo);
 

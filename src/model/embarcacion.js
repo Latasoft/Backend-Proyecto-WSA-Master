@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const accionSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true },
-    fecha: { type: Date, required: true },
+    fecha: { type: Date, required: false, default: Date.now },
     comentario: { type: String, required: false },
     incidente: { type: Boolean, required: false },
     servicio_relacionado: { type: String, default: '' }
@@ -15,47 +15,7 @@ const accionSchema = new mongoose.Schema(
 // Subesquema para cada estado
 const estadoSchema = new mongoose.Schema(
   {
-    nombre_estado: {
-      type: String,
-      required: true,
-      enum: [
-        "Provisions and Bonds",
-        "Technical Assitance and Products",
-        "WorkShop Coordination",
-        "Diving Service Coordination",
-        "Marine Surveyor Arrangement",
-        "Last Mile",
-        "Sample shipping",
-        "Cargo Shipping",
-        "Landing and Return By Courier",
-        "Airfreight Coordination",
-        "Seafreight Coordination",
-        "Courier on Board Clearance",
-        "Landing and Return Spare Parts",
-        "Port Technical Services",
-        "Custom Process",
-        "Representation",
-        "Local Subpplier And Provisions to Expeditions",
-        "Hub Agent",
-        "Part Asistence",
-        "Account Supervision",
-        "Tax Recovery (Chile)",
-        "Full Port Agent",
-        "Protective Agency",
-        "Bunkering Call",
-        "Logistic Call",
-        "Panama Channel Transit",
-        "Magellan Strait Pilotage",
-        "Crew Change",
-        "Medical Assistance",
-        "Visa Authorization on Arraival",
-        "Hotel Service",
-        "Transportation",
-        "Cash to Master",
-        "Ok to Board Issuance",
-        "Working Permit"
-      ]
-    },
+    nombre_estado: { type: String, required: true },
     acciones: {
       type: [accionSchema],
       default: []

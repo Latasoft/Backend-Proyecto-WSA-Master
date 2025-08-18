@@ -26,7 +26,7 @@ const historialCambiosSchema = new mongoose.Schema({
     accion: {
         type: String,
         required: true,
-        enum: ['crear', 'editar', 'eliminar', 'activar', 'desactivar']
+        enum: ['crear', 'editar', 'eliminar', 'activar', 'desactivar', 'revertir']
     },
     campos_modificados: [{
         campo: {
@@ -57,6 +57,20 @@ const historialCambiosSchema = new mongoose.Schema({
     comentario_cambios: {
         type: String,
         default: ''
+    },
+    // Referencia de versión (updatedAt de la entidad en el momento del cambio)
+    version_ref: {
+        type: Date,
+        default: null
+    },
+    // Snapshots completos antes y después del cambio
+    snapshot_previo: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null
+    },
+    snapshot_nuevo: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null
     }
 }, {
     timestamps: true

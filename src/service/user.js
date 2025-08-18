@@ -1,9 +1,11 @@
 import { User } from "../model/user.js";
 import { Client } from "../model/cliente.js";
+import { EmpresaCliente } from "../model/empresa-cliente.js";
 import { hashPassword } from "../utils/bcryptUtil.js";
 import{EmailService} from "../service/email.js"
 import { FRONTEND_URL } from "../config/config.js";
 import { generateResetToken } from "../utils/jwtUtil.js";
+import { UpdateUserSchema } from "../dtos/users/user.js";
 export class UserService{
     async createUser(data) {
         try {
@@ -51,13 +53,32 @@ export class UserService{
             password: hashedPassword,
             tipo_usuario: data.tipo_usuario,
             email: data.email,
+            nombre_completo: data.nombre_completo,
+            imagen_usuario: data.imagen_usuario || '',
             empresa_cliente: data.empresa_cliente || '',
-            pais_asignado: data.pais_asignado || ''
+            pais_asignado: data.pais_asignado || '',
+            dato_contacto: data.dato_contacto_cliente || ''
           });
       
           // 3. Si es CLIENTE, crear el Client
           if (data.tipo_usuario === "CLIENTE") {
-            const {  nombre_cliente, pais_cliente,dato_contacto_cliente ,foto_cliente, empresa_cliente_id } = data;
+            const {  nombre_cliente, pais_cliente,dato_contacto_cliente ,foto_cliente, empresa_cliente_id, empresa_cliente } = data;
+            
+            // Buscar empresa cliente por nombre si se proporciona
+            let empresaClienteId = empresa_cliente_id;
+            if (empresa_cliente && !empresa_cliente_id) {
+              try {
+                const empresaEncontrada = await EmpresaCliente.findOne({ 
+                  nombre_empresa: empresa_cliente 
+                });
+                if (empresaEncontrada) {
+                  empresaClienteId = empresaEncontrada._id;
+                  console.log('🏢 Empresa cliente encontrada:', empresaEncontrada.nombre_empresa);
+                }
+              } catch (errorEmpresa) {
+                console.warn('⚠️ Error al buscar empresa cliente:', errorEmpresa.message);
+              }
+            }
       
             try {
               await Client.create({
@@ -66,7 +87,7 @@ export class UserService{
                 nombre_cliente,
                 dato_contacto_cliente,
                 foto_cliente: foto_cliente || "",
-                empresa_cliente_id: empresa_cliente_id || undefined,
+                empresa_cliente_id: empresaClienteId || undefined,
               });
             } catch (errorCliente) {
                 console.error('❌ Error real al crear cliente:', errorCliente.message); // 👈 para ver el problema real
@@ -102,6 +123,7 @@ export class UserService{
               username: newUser.username,
               email: newUser.email,
               tipo_usuario: newUser.tipo_usuario,
+              imagen_usuario: newUser.imagen_usuario,
               pais_asignado: newUser.pais_asignado
             }
           };
@@ -138,32 +160,38 @@ export class UserService{
     
   // ... resto de métodos
     async updateUser(_id, data) {
-        console.log()
-        const existeUsuario = await User.findById(_id);
-    
-        if (!existeUsuario) {
-            return { message: 'Usuario no encontrado' };
+        try {
+            const existeUsuario = await User.findById(_id);
+        
+            if (!existeUsuario) {
+                throw { status: 404, message: 'Usuario no encontrado' };
+            }
+        
+            // Verificamos si hay una nueva contraseña
+            if (data.password) {
+                const hashedPassword = await hashPassword(data.password);
+                existeUsuario.password = hashedPassword;
+            }
+        
+            // Actualizar el resto de los datos
+            if (data.username) existeUsuario.username = data.username;
+            if (data.tipo_usuario) existeUsuario.tipo_usuario = data.tipo_usuario;
+            if (data.email) existeUsuario.email = data.email;
+            if (data.nombre_completo) existeUsuario.nombre_completo = data.nombre_completo;
+            if (data.imagen_usuario) existeUsuario.imagen_usuario = data.imagen_usuario;
+            if (data.empresa_cliente) existeUsuario.empresa_cliente = data.empresa_cliente;
+            if (data.pais_asignado) existeUsuario.pais_asignado = data.pais_asignado;
+            if (data.dato_contacto_cliente) existeUsuario.dato_contacto = data.dato_contacto_cliente;
+            if (data.puede_crear_nave !== undefined) existeUsuario.puede_crear_nave = data.puede_crear_nave;
+            
+            // Guardar los cambios
+            await existeUsuario.save();
+        
+            return { message: 'Usuario actualizado correctamente' };
+        } catch (error) {
+            console.error('❌ Error en updateUser:', error);
+            throw error;
         }
-    
-        // Parseamos los datos con el esquema
-        const parsedUser = UpdateUserSchema.parse(data);
-    
-        // Verificamos si hay una nueva contraseña
-        if (parsedUser.password) {
-            // Si se pasa una nueva contraseña, la encriptamos y la actualizamos
-            const hashedPassword = await hashPassword(parsedUser.password);  // Suponiendo que tienes un método para encriptar
-            existeUsuario.password = hashedPassword;
-        }
-    
-        // Actualizar el resto de los datos, sin modificar la contraseña si no fue proporcionada
-        existeUsuario.username = parsedUser.username || existeUsuario.username;
-        existeUsuario.rol_usuario = parsedUser.tipo_usuario || existeUsuario.rol_usuario;
-        existeUsuario.email = parsedUser.email || existeUsuario.email;
-        existeUsuario.empresa_cliente = parsedUser.empresa_cliente || existeUsuario.empresa_cliente;
-        // Guardar los cambios
-        await existeUsuario.save();
-    
-        return { message: 'Usuario actualizado correctamente' };
     }
 
     async findById(_id){

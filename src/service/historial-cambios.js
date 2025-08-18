@@ -31,7 +31,11 @@ export class HistorialCambiosService {
                 campos_modificados: datos.campos_modificados || [],
                 fecha_cambio: new Date(),
                 ip_usuario: datos.ip_usuario,
-                user_agent: datos.user_agent
+                user_agent: datos.user_agent,
+                snapshot_previo: datos.snapshot_previo || null,
+                snapshot_nuevo: datos.snapshot_nuevo || null,
+                comentario_cambios: datos.comentario_cambios || '',
+                version_ref: datos.version_ref || null
             });
 
             await nuevoHistorial.save();
@@ -136,7 +140,19 @@ export class HistorialCambiosService {
         return await this.registrarCambio({
             ...datos,
             accion: 'editar',
-            campos_modificados: camposModificados
+            campos_modificados: camposModificados,
+            snapshot_previo: objetoAnterior,
+            snapshot_nuevo: objetoNuevo
+        });
+    }
+
+    static async registrarReversion(datos, snapshotPrevio, snapshotNuevo) {
+        return await this.registrarCambio({
+            ...datos,
+            accion: 'revertir',
+            campos_modificados: this.compararObjetos(snapshotPrevio, snapshotNuevo),
+            snapshot_previo: snapshotPrevio,
+            snapshot_nuevo: snapshotNuevo
         });
     }
 }

@@ -1,6 +1,7 @@
 import { EmbarcacionService } from "../service/embarcacion.js";
-import { EmbarcacionDto } from "../dtos/embarcaciones/embarcacion.js";
 import { Embarcacion } from "../model/embarcacion.js";
+import { HistorialCambios } from "../model/historial-cambios.js";
+import { captureHistorialData, extraerDatosUsuario } from "../middleware/historial.js";
 import { EstadoEmbarcacionDto } from "../dtos/embarcaciones/estadoEmbarcacion.js";
 import mongoose from "mongoose";
 
@@ -38,8 +39,28 @@ export async function crearEmbarcacion(req, res) {
 
     console.log('✅ REQ BODY recibido:', JSON.stringify(req.body, null, 2));
 
-    let dataParse = req.body;
+    const body = req.body || {};
 
+    const dataParse = {
+      titulo_embarcacion: body.titulo_embarcacion,
+      destino_embarcacion: body.destino_embarcacion,
+      pais_embarcacion: body.pais_embarcacion,
+      fecha_arribo: body.fecha_arribo || null,
+      fecha_zarpe: body.fecha_zarpe || null,
+      fecha_estimada_zarpe: body.fecha_estimada_zarpe || null,
+      is_activated: body.is_activated,
+      trabajadores: Array.isArray(body.trabajadores) ? body.trabajadores : [],
+      asistentes: Array.isArray(body.asistentes) ? body.asistentes : [],
+      permisos_embarcacion: body.permisos_embarcacion,
+      // Solo se guardan servicio y subservicio de alto nivel
+      servicio: body.servicio || '',
+      subservicio: body.subservicio || '',
+      da_numero: body.da_numero,
+      empresa_cliente_id: body.empresa_cliente_id,
+      nombre_empresa_cliente: body.nombre_empresa_cliente
+    };
+
+    // Normalizar ObjectId
     dataParse.empresa_cliente_id = new mongoose.Types.ObjectId(dataParse.empresa_cliente_id);
 
     const response = await embarcacionService.crearEmbarcacion(dataParse);
@@ -91,11 +112,61 @@ export async function getAllEmbarcaciones(req, res) {
 export async function updateEmbarcacion(req, res) {
   try {
     const { _id } = req.params;
-    const response = await embarcacionService.actualizarEmbarcacion(_id, req.body);
+    const datosUsuario = extraerDatosUsuario(req);
+    const metadatos = req.historialData || {};
+    const response = await embarcacionService.actualizarEmbarcacion(_id, {
+      ...req.body,
+      __usuario_id: datosUsuario.usuario_id,
+      __usuario_nombre: datosUsuario.usuario_nombre,
+      __ip_usuario: metadatos.ip_usuario,
+      __user_agent: metadatos.user_agent,
+      __comentario_cambios: req.body?.comentario_cambios || ''
+    });
     res.status(200).json(response);
   } catch (error) {
     console.error("Error en actualizarEmbarcacion:", error);
     res.status(error.status || 500).json({ message: error.message });
+  }
+}
+
+export async function revertirEmbarcacion(req, res) {
+  try {
+    const { _id, historialId } = req.params;
+
+    const { forzar = false, comentario_cambios = '' } = req.body || {};
+    const datosUsuario = extraerDatosUsuario(req);
+    const metadatos = req.historialData || {};
+
+    const historial = await HistorialCambios.findById(historialId).lean();
+    if (!historial) return res.status(404).json({ ok: false, message: 'Historial no encontrado' });
+    if (historial.entidad_tipo !== 'embarcacion' || String(historial.entidad_id) !== String(_id)) {
+      return res.status(404).json({ ok: false, message: 'Historial no corresponde a esta embarcación' });
+    }
+    if (!historial.snapshot_previo) {
+      return res.status(400).json({ ok: false, message: 'Historial no contiene snapshot para revertir' });
+    }
+
+    const result = await embarcacionService.revertirEmbarcacion(
+      _id,
+      { ...historial, updatedAtRef: historial.version_ref || historial.updatedAt },
+      {
+        validarConcurrencia: !forzar,
+        usarNuevo: false,
+        usuario_id: datosUsuario.usuario_id,
+        usuario_nombre: datosUsuario.usuario_nombre,
+        ip_usuario: metadatos.ip_usuario,
+        user_agent: metadatos.user_agent,
+        comentario_cambios
+      }
+    );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error.status === 409) {
+      return res.status(409).json({ ok: false, desincronizado: true, message: error.message });
+    }
+    console.error('Error al revertir embarcación:', error);
+    return res.status(error.status || 500).json({ message: error.message });
   }
 }
 

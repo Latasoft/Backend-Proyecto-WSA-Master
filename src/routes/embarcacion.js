@@ -13,7 +13,8 @@ import {
     obtenerReporteTodas,
     actualizarEstadoYComentario,
     getEmbarcaciones,
-    getEmbarcacionesFiltradas
+    getEmbarcacionesFiltradas,
+    revertirEmbarcacion
 } from '../controller/embarcacion.js';
 
 import { verifyRoles } from '../middleware/verifyRoles.js';
@@ -35,6 +36,13 @@ router.put(
     authMiddleware,
     verifyRoles('ADMINISTRADOR', 'TRABAJADOR'),
     updateEmbarcacion
+);
+
+router.post(
+    '/:_id/revertir/:historialId',
+    authMiddleware,
+    verifyRoles('ADMINISTRADOR', 'TRABAJADOR'),
+    revertirEmbarcacion
 );
 
 router.put(

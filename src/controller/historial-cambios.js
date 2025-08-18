@@ -122,18 +122,17 @@ export const obtenerHistorialCambios = async (req, res) => {
         // Formatear respuesta
         const historialFormateado = historial.map(item => ({
             _id: item._id,
-            usuario: {
-                username: item.usuario_id?.username || item.usuario_nombre,
-                email: item.usuario_id?.email || 'N/A'
-            },
+            usuario_id: item.usuario_id?._id || item.usuario_id,
+            usuario_nombre: item.usuario_id?.username || item.usuario_nombre,
             entidad_tipo: item.entidad_tipo,
             entidad_id: item.entidad_id,
-            entidad_nombre: item.entidad_nombre,
             accion: item.accion,
-            campos_modificados: item.campos_modificados,
-            fecha_cambio: item.fecha_cambio,
+            comentario_cambios: item.comentario_cambios,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
             ip_usuario: item.ip_usuario,
-            comentario_cambios: item.comentario_cambios
+            snapshot_previo: item.snapshot_previo || null,
+            snapshot_nuevo: item.snapshot_nuevo || null
         }));
 
         res.status(200).json({

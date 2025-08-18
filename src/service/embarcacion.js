@@ -1,6 +1,7 @@
 import { Embarcacion } from "../model/embarcacion.js";
 import { Client } from "../model/cliente.js";
 import { EmpresaCliente } from "../model/empresa-cliente.js";
+import { HistorialCambiosService } from "./historial-cambios.js";
 
 export class EmbarcacionService {
   async crearEmbarcacion(data) {
@@ -32,10 +33,14 @@ export class EmbarcacionService {
         fecha_zarpe: validData.fecha_zarpe || null,
         fecha_estimada_zarpe: validData.fecha_estimada_zarpe || null,
         is_activated: validData.is_activated,
-        trabajadores: validData.trabajadores,
-        asistentes: validData.asistentes,
+        trabajadores: Array.isArray(validData.trabajadores) ? validData.trabajadores : [],
+        asistentes: Array.isArray(validData.asistentes) ? validData.asistentes : [],
         permisos_embarcacion: validData.permisos_embarcacion,
-        servicios: validData.servicios,
+        // No se crean servicios detallados en el registro inicial
+        servicios: [],
+        // Se guardan solo servicio principal y subservicio de alto nivel
+        servicio: validData.servicio || '',
+        subservicio: validData.subservicio || '',
         da_numero: validData.da_numero,
         empresa_cliente_id: empresa_cliente_id || undefined,
         nombre_empresa_cliente: nombre_empresa_cliente || undefined
@@ -86,7 +91,7 @@ export class EmbarcacionService {
     try {
       const dataParsed = data;
 
-      const embarcacionExistente = await Embarcacion.findById(_id);
+      const embarcacionExistente = await Embarcacion.findById(_id).lean();
       if (!embarcacionExistente) {
         throw { status: 404, message: "Embarcación no encontrada" };
       }
@@ -129,11 +134,95 @@ export class EmbarcacionService {
         { new: true, runValidators: true }
       );
 
+      // Registrar historial con snapshots
+      try {
+        await HistorialCambiosService.registrarEdicion(
+          {
+            usuario_id: data?.__usuario_id,
+            usuario_nombre: data?.__usuario_nombre,
+            entidad_tipo: 'embarcacion',
+            entidad_id: _id,
+            entidad_nombre: updatedEmbarcacion?.titulo_embarcacion || 'Embarcación',
+            ip_usuario: data?.__ip_usuario,
+            user_agent: data?.__user_agent,
+            comentario_cambios: data?.__comentario_cambios || '',
+            version_ref: embarcacionExistente?.updatedAt || null
+          },
+          embarcacionExistente,
+          updatedEmbarcacion?.toObject ? updatedEmbarcacion.toObject() : JSON.parse(JSON.stringify(updatedEmbarcacion))
+        );
+      } catch (e) {
+        console.warn('No se pudo registrar historial de edición:', e?.message || e);
+      }
+
       return { status: 201, message: "Embarcación actualizada con éxito", data: updatedEmbarcacion };
     } catch (error) {
       console.error("Error en actualizarEmbarcacion:", error);
       throw error;
     }
+  }
+
+  async revertirEmbarcacion(_id, historialRegistro, opciones = {}) {
+    const embarcacionActual = await Embarcacion.findById(_id);
+    if (!embarcacionActual) {
+      throw { status: 404, message: 'Embarcación no encontrada' };
+    }
+
+    // Concurrencia usando version_ref o updatedAt del historial
+    const referenciaActual = embarcacionActual.updatedAt?.toISOString?.() || null;
+    const referenciaHistorial = historialRegistro?.version_ref || historialRegistro?.updatedAt || null;
+    if (
+      opciones?.validarConcurrencia &&
+      !opciones?.forzar &&
+      referenciaActual &&
+      referenciaHistorial &&
+      referenciaActual !== new Date(referenciaHistorial).toISOString()
+    ) {
+      throw { status: 409, message: 'La versión actual difiere del historial', desincronizado: true };
+    }
+
+    // Selección de snapshot con fallback (previo -> nuevo)
+    const snapshot = (historialRegistro?.snapshot_previo ?? null) || (historialRegistro?.snapshot_nuevo ?? null);
+    if (!snapshot) {
+      throw { status: 400, message: 'El historial no contiene snapshot válido (previo ni nuevo)' };
+    }
+
+    // Overwrite preservando claves
+    const preservados = {
+      _id: embarcacionActual._id,
+      id: embarcacionActual._id,
+      createdAt: embarcacionActual.createdAt
+    };
+
+    const documentoReemplazado = { ...snapshot, ...preservados, updatedAt: new Date() };
+
+    const antesDeRevertir = embarcacionActual.toObject();
+    const despuesDeRevertir = await Embarcacion.findByIdAndUpdate(
+      _id,
+      documentoReemplazado,
+      { new: true, overwrite: true }
+    );
+
+    try {
+      await HistorialCambiosService.registrarReversion(
+        {
+          usuario_id: opciones?.usuario_id,
+          usuario_nombre: opciones?.usuario_nombre,
+          entidad_tipo: 'embarcacion',
+          entidad_id: _id,
+          entidad_nombre: despuesDeRevertir?.titulo_embarcacion || 'Embarcación',
+          ip_usuario: opciones?.ip_usuario,
+          user_agent: opciones?.user_agent,
+          comentario_cambios: opciones?.comentario_cambios || ''
+        },
+        antesDeRevertir,
+        despuesDeRevertir?.toObject ? despuesDeRevertir.toObject() : JSON.parse(JSON.stringify(despuesDeRevertir))
+      );
+    } catch (e) {
+      console.warn('No se pudo registrar historial de reversion:', e?.message || e);
+    }
+
+    return { ok: true, data: despuesDeRevertir };
   }
 
   async getEmbarcacionById(_id) {
