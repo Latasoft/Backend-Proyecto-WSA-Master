@@ -1,55 +1,64 @@
-import { bucket } from '../config/firebaseConfig.js';
-import { FIREBASE_STORAGE_BUCKET } from '../config/config.js';
+import firebaseStorage from '../config/firebaseConfig.js';
 
-// Subir un archivo a Firebase Storage y obtener la URL pública
-export async function subirArchivoAFirebase(archivo, carpeta, tipoArchivo) {
-  if (!bucket) {
-    throw new Error('El bucket no está configurado correctamente.');
-  }
-
-  if (!archivo || !archivo.originalname || !archivo.buffer) {
-    throw new Error('El archivo es inválido o no tiene las propiedades esperadas.');
-  }
-
-  const uniqueFileName = `${carpeta}/${Date.now()}_${archivo.originalname}`;
-  const blob = bucket.file(uniqueFileName);
-
-  const blobStream = blob.createWriteStream({ resumable: false });
-
-  return new Promise((resolve, reject) => {
-    blobStream.on('finish', async () => {
-      try {
-        await blob.makePublic();
-        const publicUrl = `https://storage.googleapis.com/${FIREBASE_STORAGE_BUCKET}/${uniqueFileName}`;
-        resolve(publicUrl);
-      } catch (error) {
-        console.error(`Error al hacer público el ${tipoArchivo}:`, error);
-        reject(error);
-      }
-    });
-
-    blobStream.on('error', (err) => {
-      console.error(`Error al subir ${tipoArchivo} a Firebase Storage:`, err);
-      reject(err);
-    });
-
-    blobStream.end(archivo.buffer);
-  });
-}
-
-// Eliminar un archivo de Firebase Storage
-export async function eliminarArchivoAntiguo(url) {
-  if (!url) {
-    console.warn('No se proporcionó URL para eliminar el archivo.');
-    return;
-  }
-
-  const fileName = url.split(`${FIREBASE_STORAGE_BUCKET}/`)[1];
-  const file = bucket.file(fileName);
-
+// Función para subir archivos a Firebase Storage
+export const subirArchivoAFirebase = async (file, folder = 'images', filename = null) => {
   try {
-    await file.delete();
+    const bucket = firebaseStorage.bucket();
+    
+    // Generar un nombre de archivo único si no se proporciona uno
+    const finalFilename = filename || `${Date.now()}-${file.originalname}`;
+    const fileUpload = bucket.file(`${folder}/${finalFilename}`);
+    
+    // Crear un stream para subir el archivo
+    const stream = fileUpload.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+    
+    // Manejar eventos del stream
+    return new Promise((resolve, reject) => {
+      stream.on('error', (error) => {
+        reject(error);
+      });
+      
+      stream.on('finish', async () => {
+        // Obtener URL pública del archivo
+        const [url] = await fileUpload.getSignedUrl({
+          action: 'read',
+          expires: '03-01-2500', // Fecha lejana para URL permanente
+        });
+        
+        resolve({
+          filename: finalFilename,
+          path: `${folder}/${finalFilename}`,
+          url,
+        });
+      });
+      
+      // Escribir el archivo en el stream
+      stream.end(file.buffer);
+    });
   } catch (error) {
-    console.warn('No se pudo eliminar el archivo anterior:', error.message);
+    console.error('Error al subir archivo a Firebase:', error);
+    throw error;
   }
-}
+};
+
+// Función para eliminar un archivo antiguo
+export const eliminarArchivoAntiguo = async (filePath) => {
+  try {
+    if (!filePath) return true;
+    
+    const bucket = firebaseStorage.bucket();
+    await bucket.file(filePath).delete();
+    return true;
+  } catch (error) {
+    console.error('Error al eliminar archivo de Firebase:', error);
+    // No lanzamos el error para que no interrumpa el flujo
+    return false;
+  }
+};
+
+// Exportar también uploadFile si es necesario para compatibilidad
+export const uploadFile = subirArchivoAFirebase;

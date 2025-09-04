@@ -5,7 +5,22 @@ const authService = new AuthService();
 // Controlador para login
 export async function login(req, res) {
   try {
+    console.log('🔑 [LOGIN] Intento de inicio de sesión:', {
+      username: req.body.username,
+      timestamp: new Date().toISOString(),
+      ip: req.ip || 'desconocida',
+      userAgent: req.get('user-agent') || 'desconocido'
+    });
+    
+    // Omitimos la contraseña por seguridad en los logs
+    console.log('📝 [LOGIN] Datos recibidos:', { 
+      ...req.body, 
+      password: req.body.password ? '********' : undefined 
+    });
+
     const response = await authService.login(req.body);
+
+    console.log('✅ [LOGIN] Inicio de sesión exitoso para:', req.body.username);
 
     // Respuesta exitosa con success: true
     res.status(200).json({
@@ -16,6 +31,13 @@ export async function login(req, res) {
     // Captura el status y mensaje del error o usa valores por defecto
     const status = error?.status || 500;
     const message = error?.message || 'Error interno del servidor';
+
+    console.error('❌ [LOGIN] Error en inicio de sesión:', {
+      username: req.body?.username,
+      error: message,
+      status,
+      stack: error?.stack
+    });
 
     res.status(status).json({ message });
   }

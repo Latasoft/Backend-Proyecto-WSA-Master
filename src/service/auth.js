@@ -8,29 +8,65 @@ import { EmailService } from "../service/email.js";
 export class AuthService {
   // Login de usuario
   async login(data) {
-    // Validar entrada con Zod (u otro esquema)
-    const loginParsed = AuthSchema.parse(data);
+    try {
+      console.log('🔍 [AUTH-SERVICE] Inicio de proceso de login');
+      
+      // Validar entrada con Zod (u otro esquema)
+      console.log('🔍 [AUTH-SERVICE] Validando datos de entrada');
+      const loginParsed = AuthSchema.parse(data);
+      console.log('✅ [AUTH-SERVICE] Datos validados correctamente');
 
-    // Buscar usuario por username
-    const user = await User.findOne({ username: loginParsed.username });
-    if (!user) {
-      throw { status: 401, message: 'Nombre de usuario no encontrado' };
+      // Buscar usuario por username
+      console.log(`🔍 [AUTH-SERVICE] Buscando usuario: ${loginParsed.username}`);
+      const user = await User.findOne({ username: loginParsed.username });
+      
+      if (!user) {
+        console.log(`❌ [AUTH-SERVICE] Usuario no encontrado: ${loginParsed.username}`);
+        throw { status: 401, message: 'Nombre de usuario no encontrado' };
+      }
+      
+      console.log(`✅ [AUTH-SERVICE] Usuario encontrado: ${user.username}, ID: ${user._id}, Rol: ${user.tipo_usuario}`);
+
+      // Verificar contraseña
+      console.log('🔍 [AUTH-SERVICE] Verificando contraseña');
+      const isPasswordValid = await comparePassword(loginParsed.password, user.password);
+      
+      if (!isPasswordValid) {
+        console.log(`❌ [AUTH-SERVICE] Contraseña incorrecta para: ${user.username}`);
+        throw { status: 401, message: 'Credenciales incorrectas' };
+      }
+      
+      console.log(`✅ [AUTH-SERVICE] Contraseña válida para: ${user.username}`);
+
+      // Generar JWT con datos importantes
+      console.log('🔍 [AUTH-SERVICE] Generando token JWT');
+      const token = generateToken({
+        _id: user._id,
+        role: user.tipo_usuario,
+        puede_crear_nave: user.puede_crear_nave,
+      });
+      
+      console.log(`✅ [AUTH-SERVICE] Token JWT generado para: ${user.username}`);
+      console.log('✅ [AUTH-SERVICE] Proceso de login completado con éxito');
+
+      return { 
+        message: 'Sesión iniciada con éxito', 
+        token,
+        user: {
+          _id: user._id,
+          username: user.username,
+          tipo_usuario: user.tipo_usuario,
+          nombre_completo: user.nombre_completo,
+          email: user.email,
+          empresa_cliente: user.empresa_cliente,
+          pais_asignado: user.pais_asignado,
+          puede_crear_nave: user.puede_crear_nave
+        }
+      };
+    } catch (error) {
+      console.error('❌ [AUTH-SERVICE] Error en proceso de login:', error);
+      throw error;
     }
-
-    // Verificar contraseña
-    const isPasswordValid = await comparePassword(loginParsed.password, user.password);
-    if (!isPasswordValid) {
-      throw { status: 401, message: 'Credenciales incorrectas' };
-    }
-
-    // Generar JWT con datos importantes
-    const token = generateToken({
-      _id: user._id,
-      role: user.tipo_usuario,
-      puede_crear_nave: user.puede_crear_nave,
-    });
-
-    return { message: 'Sesión iniciada con éxito', token };
   }
 
   // Enviar email para restablecer contraseña
