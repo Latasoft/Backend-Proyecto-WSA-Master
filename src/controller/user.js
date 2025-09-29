@@ -186,6 +186,21 @@ export async function saveFcmTokenController(req, res) {
     }catch(error){
         res.status(error.status || 500).json({ message: error.message  });
     }
-
+export async function toggleUserStatus(req, res) {
+    try {
+        const { _id } = req.params;
+        const { activo } = req.body;
+        
+        const updatedUser = await User.findByIdAndUpdate(
+            _id, 
+            { activo }, 
+            { new: true }
+        );
+        
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message });
+    }
+}
     
 }
