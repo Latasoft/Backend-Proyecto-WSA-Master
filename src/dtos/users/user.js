@@ -49,6 +49,10 @@ const UpdateUserSchema = z.object({
   dato_contacto_cliente: z.string().optional(),
   foto_cliente: z.string().optional(),
   empresa_cliente_id: z.string().optional(),
+    activo: {
+        type: Boolean,
+        default: true
+    }  
 });
 
 export { UserSchema, UpdateUserSchema };
