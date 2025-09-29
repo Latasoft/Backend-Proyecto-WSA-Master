@@ -48,7 +48,11 @@ const userSchema= new mongoose.Schema({
     dato_contacto: {
         type: String,
         default: ''
-    }
+    },
+    activo: {
+        type: Boolean,
+        default: true
+    }  
 })
 
 export const User= mongoose.model('User',userSchema)
