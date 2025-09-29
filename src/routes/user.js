@@ -24,7 +24,7 @@ router.put('/:_id', uploadAnyImage, handleMulterError, updateUser)
 router.patch('/:_id', actualizarCampo);
 router.delete('/:_id',authMiddleware,verifyRoles('ADMINISTRADOR'),deleteUserById)
 router.put('/permiso-crear-nave/:_id', actualizarCampo);
-router.patch('/:_id/status', authMiddleware, toggleUserStatus);
+router.patch('/:_id/status', authMiddleware,verifyRoles('ADMINISTRADOR'), toggleUserStatus);
 
 export default router;
 
