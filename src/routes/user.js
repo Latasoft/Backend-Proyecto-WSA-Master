@@ -7,7 +7,8 @@ import {
     getAllUsersPaginated,
     getAllEmployes,
     saveFcmTokenController,
-    deleteUserById
+    deleteUserById,
+    toggleUserStatus
 } from '../controller/user.js';
 import { uploadAnyImage, handleMulterError } from '../middleware/uploadFile.js';
 import { authMiddleware } from '../middleware/auth.js';
@@ -23,6 +24,7 @@ router.put('/:_id', uploadAnyImage, handleMulterError, updateUser)
 router.patch('/:_id', actualizarCampo);
 router.delete('/:_id',authMiddleware,verifyRoles('ADMINISTRADOR'),deleteUserById)
 router.put('/permiso-crear-nave/:_id', actualizarCampo);
+router.patch('/:_id/status', authMiddleware, toggleUserStatus);
 
 export default router;
 
