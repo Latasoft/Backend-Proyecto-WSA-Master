@@ -186,6 +186,9 @@ export async function saveFcmTokenController(req, res) {
     }catch(error){
         res.status(error.status || 500).json({ message: error.message  });
     }
+    
+}
+
 export async function toggleUserStatus(req, res) {
     try {
         const { _id } = req.params;
@@ -201,6 +204,4 @@ export async function toggleUserStatus(req, res) {
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }
-}
-    
 }
