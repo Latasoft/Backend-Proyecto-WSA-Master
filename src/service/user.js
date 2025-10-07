@@ -160,42 +160,42 @@ export class UserService{
     
   // ... resto de métodos
     async updateUser(_id, data) {
-        try {
-            const existeUsuario = await User.findById(_id);
-        
-            if (!existeUsuario) {
-                throw { status: 404, message: 'Usuario no encontrado' };
-            }
-        
-            // Verificamos si hay una nueva contraseña
-            if (data.password) {
-                const hashedPassword = await hashPassword(data.password);
-                existeUsuario.password = hashedPassword;
-            }
-        
-            // Actualizar el resto de los datos
-            if (data.username) existeUsuario.username = data.username;
-            if (data.tipo_usuario) existeUsuario.tipo_usuario = data.tipo_usuario;
-            if (data.email) existeUsuario.email = data.email;
-            if (data.nombre_completo) existeUsuario.nombre_completo = data.nombre_completo;
-            if (data.imagen_usuario) existeUsuario.imagen_usuario = data.imagen_usuario;
-            if (data.empresa_cliente) existeUsuario.empresa_cliente = data.empresa_cliente;
-            if (data.pais_asignado) existeUsuario.pais_asignado = data.pais_asignado;
-            if (data.dato_contacto_cliente) existeUsuario.dato_contacto = data.dato_contacto_cliente;
-            if (data.puede_crear_nave !== undefined) existeUsuario.puede_crear_nave = data.puede_crear_nave;
-            
-            // Guardar los cambios
-            await existeUsuario.save();
-        
-            return { 
-                message: 'Usuario actualizado correctamente' ,
-                user: userResponse
-            };
+        console.log()
+        const existeUsuario = await User.findById(_id);
 
-        } catch (error) {
-            console.error('❌ Error en updateUser:', error);
-            throw error;
+        if (!existeUsuario) {
+            return { message: 'Usuario no encontrado' };
         }
+
+        // Parseamos los datos con el esquema
+        const parsedUser = UpdateUserSchema.parse(data);
+
+        // Verificamos si hay una nueva contraseña
+        if (parsedUser.password) {
+            // Si se pasa una nueva contraseña, la encriptamos y la actualizamos
+            const hashedPassword = await hashPassword(parsedUser.password);
+            existeUsuario.password = hashedPassword;
+        }
+
+        // Actualizar el resto de los datos, sin modificar la contraseña si no fue proporcionada
+        existeUsuario.username = parsedUser.username || existeUsuario.username;
+        existeUsuario.tipo_usuario = parsedUser.tipo_usuario || existeUsuario.tipo_usuario; // ⚠️ Era rol_usuario, debería ser tipo_usuario
+        existeUsuario.email = parsedUser.email || existeUsuario.email;
+        existeUsuario.empresa_cliente = parsedUser.empresa_cliente || existeUsuario.empresa_cliente;
+        existeUsuario.nombre_completo = parsedUser.nombre_completo || existeUsuario.nombre_completo;
+        existeUsuario.pais_asignado = parsedUser.pais_asignado || existeUsuario.pais_asignado;
+        existeUsuario.activo = parsedUser.activo !== undefined ? parsedUser.activo : existeUsuario.activo;
+        
+        // Guardar los cambios
+        await existeUsuario.save();
+
+        // 🔥 IMPORTANTE: Devolver el usuario actualizado sin la contraseña
+        const { password, ...userResponse } = existeUsuario.toObject();
+
+        return { 
+            message: 'Usuario actualizado correctamente',
+            user: userResponse // 👈 Devolver los datos del usuario
+        };
     }
 
     async findById(_id){
