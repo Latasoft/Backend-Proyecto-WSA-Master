@@ -188,7 +188,7 @@ export class UserService{
             await existeUsuario.save();
         
             return { 
-                message: 'Usuario actualizado correctamente' 
+                message: 'Usuario actualizado correctamente' ,
                 user: userResponse
             };
 
