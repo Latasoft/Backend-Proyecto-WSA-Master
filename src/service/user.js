@@ -68,30 +68,40 @@ export class UserService{
     async updateUser(_id, data) {
         console.log()
         const existeUsuario = await User.findById(_id);
-    
+
         if (!existeUsuario) {
             return { message: 'Usuario no encontrado' };
         }
-    
+
         // Parseamos los datos con el esquema
         const parsedUser = UpdateUserSchema.parse(data);
-    
+
         // Verificamos si hay una nueva contraseña
         if (parsedUser.password) {
             // Si se pasa una nueva contraseña, la encriptamos y la actualizamos
-            const hashedPassword = await hashPassword(parsedUser.password);  // Suponiendo que tienes un método para encriptar
+            const hashedPassword = await hashPassword(parsedUser.password);
             existeUsuario.password = hashedPassword;
         }
-    
+
         // Actualizar el resto de los datos, sin modificar la contraseña si no fue proporcionada
         existeUsuario.username = parsedUser.username || existeUsuario.username;
-        existeUsuario.rol_usuario = parsedUser.tipo_usuario || existeUsuario.rol_usuario;
+        existeUsuario.tipo_usuario = parsedUser.tipo_usuario || existeUsuario.tipo_usuario; // ⚠️ Era rol_usuario, debería ser tipo_usuario
         existeUsuario.email = parsedUser.email || existeUsuario.email;
         existeUsuario.empresa_cliente = parsedUser.empresa_cliente || existeUsuario.empresa_cliente;
+        existeUsuario.nombre_completo = parsedUser.nombre_completo || existeUsuario.nombre_completo;
+        existeUsuario.pais_asignado = parsedUser.pais_asignado || existeUsuario.pais_asignado;
+        existeUsuario.activo = parsedUser.activo !== undefined ? parsedUser.activo : existeUsuario.activo;
+        
         // Guardar los cambios
         await existeUsuario.save();
-    
-        return { message: 'Usuario actualizado correctamente' };
+
+        // 🔥 IMPORTANTE: Devolver el usuario actualizado sin la contraseña
+        const { password, ...userResponse } = existeUsuario.toObject();
+
+        return { 
+            message: 'Usuario actualizado correctamente',
+            user: userResponse // 👈 Devolver los datos del usuario
+        };
     }
 
     async findById(_id){
