@@ -187,7 +187,11 @@ export class UserService{
             // Guardar los cambios
             await existeUsuario.save();
         
-            return { message: 'Usuario actualizado correctamente' };
+            return { 
+                message: 'Usuario actualizado correctamente' 
+                user: userResponse
+            };
+
         } catch (error) {
             console.error('❌ Error en updateUser:', error);
             throw error;
